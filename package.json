@@ -1,0 +1,39 @@
+{
+  "name": "management-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0 --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "db:setup": "node --env-file=.env.local scripts/setup-db.mjs"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "archiver": "^7.0.1",
+    "bcryptjs": "^3.0.3",
+    "framer-motion": "^12.38.0",
+    "gsap": "^3.15.0",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.3",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.20.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "files.exclude": {
+    "node_modules": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "python.linting.enabled": false,
+  "search.exclude": {
+    "node_modules": true,
+    ".next": true,
+    "dist": true
+  },
+  "files.watcherExclude": {
+    "node_modules/**": true,
+    ".next/**": true
+  }
+}
