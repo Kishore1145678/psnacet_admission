@@ -174,27 +174,27 @@ function CoverflowGallery({ images }: { images: string[] }) {
     >
       <div className="w-full max-w-screen-2xl mx-auto flex flex-col xl:flex-row items-center gap-12">
         {/* Left Side: Typography */}
-        <div className="w-full xl:w-[35%] flex flex-col justify-center pointer-events-none z-30 mb-8 xl:mb-0 relative text-left px-4 sm:px-8 lg:px-12">
+        <div className="w-full xl:w-[35%] flex flex-col justify-center pointer-events-none z-30 mb-6 xl:mb-0 relative text-left px-2 sm:px-8 lg:px-12">
           <h2
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-black text-emerald-900 uppercase leading-[0.9] tracking-tighter drop-shadow-xl mb-6 relative"
+            className="text-3xl sm:text-5xl md:text-6xl lg:text-[4.5rem] font-black text-emerald-900 uppercase leading-[0.9] tracking-tighter drop-shadow-xl mb-4 sm:mb-6 relative"
             style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}
           >
             ACADEMIC<br />STRENGTH
           </h2>
-          <div className="w-16 h-[3px] bg-emerald-500 mb-8" />
-          <p className="text-sm md:text-base font-bold text-black/90 lowercase tracking-widest leading-relaxed max-w-xl text-left" style={{ fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, sans-serif' }}>
+          <div className="w-12 sm:w-16 h-[3px] bg-emerald-500 mb-4 sm:mb-8" />
+          <p className="text-xs sm:text-base font-bold text-black/90 lowercase tracking-widest leading-relaxed max-w-xl text-left" style={{ fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, sans-serif' }}>
             Our institution is built on a foundation of modern infrastructure and a commitment to academic excellence. With well-equipped laboratories, advanced technology, and thoughtfully designed learning spaces, students are provided with an environment that fosters innovation, creativity, and practical knowledge. Beyond facilities, we emphasize strong educational values—encouraging critical thinking, ethical responsibility, and continuous growth. This holistic approach ensures that every student is not only academically prepared but also equipped to thrive in real-world challenges and future opportunities.
           </p>
         </div>
 
         {/* Right Side: Spacious Image Carousel */}
-        <div className="w-full xl:w-[65%] relative flex justify-center items-center h-[350px] md:h-[500px]" style={{ perspective: "1200px" }}>
+        <div className="w-full xl:w-[65%] relative flex justify-center items-center h-[280px] sm:h-[350px] md:h-[500px] overflow-hidden" style={{ perspective: "1200px" }}>
           {images.map((img, i) => {
             const isActive = i === activeIndex;
             const offset = i - activeIndex;
 
             const rotateY = offset === 0 ? 0 : offset < 0 ? 45 : -45;
-            const xGap = isMobile ? 60 : 160;
+            const xGap = isMobile ? 35 : 160;
             const posX = offset * xGap;
             const z = Math.abs(offset) * -200;
             const scale = isActive ? 1 : 0.85;
@@ -204,7 +204,7 @@ function CoverflowGallery({ images }: { images: string[] }) {
             return (
               <motion.div
                 key={i}
-                className="absolute w-[240px] h-[320px] md:w-[450px] md:h-[380px] lg:w-[500px] lg:h-[400px] rounded-2xl cursor-pointer"
+                className="absolute w-[180px] h-[240px] sm:w-[240px] sm:h-[320px] md:w-[450px] md:h-[380px] lg:w-[500px] lg:h-[400px] rounded-2xl cursor-pointer"
                 animate={{
                   rotateY,
                   x: `${posX}px`,
@@ -273,7 +273,7 @@ function WelcomeSections() {
         <section className="min-h-screen w-full flex items-center justify-center px-4 py-20 relative">
 
           {/* Medium Brutalist Bottom-Left Quote Container */}
-          <div className="absolute inset-0 flex items-end justify-start pointer-events-none pb-16 px-6 md:pb-20 md:px-12 z-20">
+          <div className="absolute inset-0 flex items-end justify-start pointer-events-none pb-8 px-4 sm:pb-16 sm:px-6 md:pb-20 md:px-12 z-20">
             <AnimatePresence mode="wait">
               <motion.h2
                 key={currentIndex}
@@ -281,7 +281,7 @@ function WelcomeSections() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white text-left uppercase leading-[0.95] tracking-tighter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+                className="text-lg sm:text-3xl md:text-4xl lg:text-5xl font-black text-white text-left uppercase leading-[0.95] tracking-tighter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
                 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}
               >
                 {QUOTES[currentIndex] || QUOTES[0]}
@@ -291,18 +291,18 @@ function WelcomeSections() {
           <motion.div
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 2 }}
-            className="absolute bottom-12 right-6 md:bottom-16 md:right-12 lg:right-20 flex flex-col items-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] cursor-pointer z-30"
+            className="absolute bottom-4 right-4 sm:bottom-12 sm:right-6 md:bottom-16 md:right-12 lg:right-20 flex flex-col items-center gap-1.5 sm:gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] cursor-pointer z-30"
             onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
           >
-            <span className="text-xs font-semibold tracking-widest text-white/80 uppercase">Scroll Down</span>
-            <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center p-1">
+            <span className="text-[10px] sm:text-xs font-semibold tracking-widest text-white/80 uppercase">Scroll Down</span>
+            <div className="w-5 h-8 sm:w-6 sm:h-10 border-2 border-white/40 rounded-full flex justify-center p-1">
               <div className="w-1 h-2 bg-yellow-400 rounded-full" />
             </div>
           </motion.div>
         </section>
 
         {/* Section 2: Disintegration Box Layout */}
-        <section className="min-h-[70vh] md:min-h-[85vh] w-full flex items-center relative overflow-hidden bg-[#0b2a1a] py-20 px-6 md:px-12">
+        <section className="min-h-[70vh] md:min-h-[85vh] w-full flex items-center relative overflow-hidden bg-[#0b2a1a] py-12 sm:py-20 px-4 sm:px-6 md:px-12">
           {/* White pattern overlay */}
           <div
             className="absolute inset-0 pointer-events-none opacity-[0.18]"
@@ -314,7 +314,7 @@ function WelcomeSections() {
             }}
           />
 
-          <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center relative z-10">
+          <div className="w-full max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-20 items-center relative z-10">
             {/* Left Side: Minimal Box Image with Disintegration Effect */}
             <div className="w-full max-w-md mx-auto">
               <DisintegrationImage src={WELCOME_IMAGES[0]} />
@@ -326,18 +326,18 @@ function WelcomeSections() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-20%" }}
               transition={{ duration: 1, ease: "easeOut" }}
-              className="w-full text-left px-4 sm:px-8 lg:px-12"
+              className="w-full text-left px-2 sm:px-8 lg:px-12"
             >
               <h2
-                className="text-4xl sm:text-5xl md:text-[3.25rem] lg:text-[4rem] font-black text-white text-left uppercase leading-[1.05] tracking-tighter drop-shadow-2xl mb-8 whitespace-nowrap"
+                className="text-2xl sm:text-4xl md:text-[3.25rem] lg:text-[4rem] font-black text-white text-left uppercase leading-[1.05] tracking-tighter drop-shadow-2xl mb-4 sm:mb-8 sm:whitespace-nowrap"
                 style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif' }}
               >
                 YOUR FUTURE<br />STARTS HERE.
               </h2>
 
-              <div className="w-16 h-[3px] bg-emerald-500 mb-8" />
+              <div className="w-12 sm:w-16 h-[3px] bg-emerald-500 mb-4 sm:mb-8" />
 
-              <p className="text-sm md:text-base font-bold text-white/90 lowercase tracking-widest leading-relaxed max-w-xl text-left pb-16" style={{ fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, sans-serif' }}>
+              <p className="text-xs sm:text-base font-bold text-white/90 lowercase tracking-widest leading-relaxed max-w-xl text-left pb-8 sm:pb-16" style={{ fontFamily: '"Switzer", -apple-system, BlinkMacSystemFont, sans-serif' }}>
                 PSNA College of Engineering stands as a center of excellence in engineering education, combining world-class infrastructure with strong academic and ethical values, empowering students to become technologically advanced, socially responsible, and future-ready professionals; through practical learning, innovation-driven projects, and industry-oriented training, it nurtures problem-solving skills, leadership, and collaboration, while its focus on research, continuous improvement, and a student-centered approach ensures individuals are prepared to excel and contribute meaningfully to society.
               </p>
             </motion.div>
@@ -357,8 +357,7 @@ export default function ApplicationForm() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDraggingLeft, setIsDraggingLeft] = useState(false);
-  const [isDraggingRight, setIsDraggingRight] = useState(false);
+
   const [batchString, setBatchString] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
@@ -1098,101 +1097,6 @@ export default function ApplicationForm() {
         <div className="absolute bottom-20 left-1/3 w-[520px] h-[520px] rounded-full bg-white/6 blur-3xl pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative">
 
-          {/* SCROLL-BOUND TRACKING WRAPPER FOR FLOATERS */}
-          <div className="sticky top-40 w-full z-[100] h-0">
-            {/* Floating Left Setup: Contact Support Pop-up */}
-            <motion.div
-              drag
-              dragConstraints={{ left: -100, right: 1000, top: -200, bottom: 800 }}
-              dragElastic={0.4}
-              dragMomentum={true}
-              whileDrag={{ scale: 1.05, cursor: "grabbing" }}
-              onDragStart={() => setIsDraggingLeft(true)}
-              onDragEnd={() => setIsDraggingLeft(false)}
-              animate={isDraggingLeft ? undefined : { y: [0, -14, 0], rotate: [0, 3, -2, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-              className="flex absolute -left-4 sm:-left-6 xl:-left-12 top-0 group cursor-grab z-[150]"
-            >
-              {isDraggingLeft && (
-                <div className="absolute top-1/2 left-1/2 w-full h-full -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                  <div className="smoke-particle" style={{ '--dx': '15px', '--dy': '-30px', animationDelay: '0s' } as any} />
-                  <div className="smoke-particle" style={{ '--dx': '2px', '--dy': '-20px', animationDelay: '0.15s' } as any} />
-                  <div className="smoke-particle" style={{ '--dx': '-10px', '--dy': '-25px', animationDelay: '0.3s' } as any} />
-                </div>
-              )}
-
-              {/* The Trigger Icon */}
-              <div className="w-12 h-12 bg-white/90 backdrop-blur-xl shadow-[0_8px_20px_rgba(0,0,0,0.08)] rounded-full flex items-center justify-center cursor-pointer border border-white transition-opacity group-hover:opacity-0 absolute top-0 left-0 duration-300">
-                <span className="material-symbols-outlined text-[#1e3a8a] text-[26px]">support_agent</span>
-              </div>
-
-              {/* The Glassmorphism Pop-up */}
-              <div className="absolute top-0 left-0 w-64 bg-white/80 backdrop-blur-3xl border border-white/90 shadow-[0_24px_50px_rgba(0,0,0,0.15)] rounded-[1.5rem] p-5 flex flex-col items-start gap-3 opacity-0 invisible -translate-x-4 scale-95 origin-top-left group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 group-hover:scale-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto">
-                <div className="flex items-center gap-3 w-full">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex justify-center items-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-emerald-600 text-[20px]">support_agent</span>
-                  </div>
-                  <h4 className="text-[13px] font-extrabold text-gray-900 uppercase tracking-widest leading-tight">Contact Us</h4>
-                </div>
-                <p className="text-xs font-semibold text-gray-600 leading-relaxed mt-1">If you experience any doubts while filling this form, contact us directly.</p>
-                <div className="w-full h-px bg-gray-300/60 my-1" />
-                <a href="tel:0451-2554032" className="flex items-center gap-2 text-sm font-black text-[#1e3a8a] hover:text-[#0ea5e9] transition-colors">
-                  <Phone className="w-4 h-4 fill-current" /> 0451-2554032
-                </a>
-              </div>
-            </motion.div>
-
-            {/* Floating Right Setup: Video Guide Tutorial */}
-            <motion.div
-              drag
-              dragConstraints={{ left: -1000, right: 100, top: -200, bottom: 800 }}
-              dragElastic={0.4}
-              dragMomentum={true}
-              whileDrag={{ scale: 1.05, cursor: "grabbing" }}
-              onDragStart={() => setIsDraggingRight(true)}
-              onDragEnd={() => setIsDraggingRight(false)}
-              animate={isDraggingRight ? undefined : { y: [0, -12, 0], rotate: [0, -2, 3, 0] }}
-              transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="flex absolute -right-4 sm:-right-6 xl:-right-12 top-16 xl:top-0 group cursor-grab z-[150]"
-            >
-              {isDraggingRight && (
-                <div className="absolute top-1/2 left-1/2 w-full h-full -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                  <div className="smoke-particle" style={{ '--dx': '-15px', '--dy': '-30px', animationDelay: '0s' } as any} />
-                  <div className="smoke-particle" style={{ '--dx': '-5px', '--dy': '-20px', animationDelay: '0.15s' } as any} />
-                  <div className="smoke-particle" style={{ '--dx': '10px', '--dy': '-25px', animationDelay: '0.3s' } as any} />
-                </div>
-              )}
-
-              {/* The Trigger Icon */}
-              <div className="w-12 h-12 bg-white/90 backdrop-blur-xl shadow-[0_8px_20px_rgba(0,0,0,0.08)] rounded-full flex items-center justify-center cursor-pointer border border-white transition-opacity group-hover:opacity-0 absolute top-0 right-0 duration-300">
-                <span className="material-symbols-outlined text-red-600 text-[28px]">play_circle</span>
-              </div>
-
-              {/* The Glassmorphism Pop-up */}
-              <div className="absolute top-0 right-0 w-64 bg-white/80 backdrop-blur-3xl border border-white/90 shadow-[0_24px_50px_rgba(0,0,0,0.15)] rounded-[1.5rem] p-5 flex flex-col items-start gap-3 opacity-0 invisible translate-x-4 scale-95 origin-top-right group-hover:opacity-100 group-hover:visible group-hover:translate-x-0 group-hover:scale-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto">
-                <h4 className="text-[13px] font-extrabold text-gray-900 uppercase tracking-widest flex items-center gap-2">
-                  <span className="material-symbols-outlined text-red-600 text-[18px]">play_circle</span> Tutorial Guide
-                </h4>
-
-                <a
-                  href={tutorialVideoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="relative w-full aspect-video rounded-xl bg-gradient-to-tr from-red-600 to-rose-700 overflow-hidden group/vdo shadow-md cursor-pointer flex flex-col items-center justify-center border border-white/40 ring-2 ring-transparent hover:ring-red-500/50 transition-all p-3 text-white"
-                >
-                  <div className="w-12 h-12 rounded-full bg-white text-red-600 flex items-center justify-center shadow-lg group-hover/vdo:scale-110 transition-transform duration-300">
-                    <span className="material-symbols-outlined text-[28px] ml-0.5">play_arrow</span>
-                  </div>
-                  <span className="text-xs font-bold mt-2 flex items-center gap-1">
-                    Watch Video on YouTube
-                    <span className="material-symbols-outlined text-[13px]">open_in_new</span>
-                  </span>
-                </a>
-
-                <p className="text-[11px] font-bold text-gray-600 leading-relaxed text-center w-full">Click to open and watch step-by-step video on YouTube</p>
-              </div>
-            </motion.div>
-          </div>
 
           <div className="mb-10 text-center sm:text-left mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>

@@ -19,7 +19,7 @@ async function runMigration() {
     // Update all students where access_expires_at is NULL
     const result = await client.query(`
       UPDATE students 
-      SET access_expires_at = created_at + INTERVAL '3 days'
+      SET access_expires_at = created_at + INTERVAL '5 days'
       WHERE access_expires_at IS NULL;
     `);
 

@@ -42,34 +42,34 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
       `}} />
-      <header className={`bg-white border-b border-gray-200 py-3 shadow-sm w-full fixed top-0 z-[100] transition-transform duration-500 ease-in-out ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}>
-        <div className="max-w-[1800px] w-full mx-auto flex items-center justify-between px-4 md:px-8">
+      <header className={`bg-white border-b border-gray-200 py-2 sm:py-3 shadow-sm w-full fixed top-0 z-[100] transition-transform duration-500 ease-in-out ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="max-w-[1800px] w-full mx-auto flex items-center justify-between px-3 md:px-8">
           {/* Left Side: Logo & Institution Name */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 overflow-hidden">
             <img
               src="/psna.png"
               alt="PSNA Logo"
-              className="h-16 md:h-20 w-auto object-contain"
+              className="h-10 sm:h-16 md:h-20 w-auto object-contain shrink-0"
             />
-            <div className="flex flex-col justify-center">
-              <h1 className="text-xl md:text-[26px] font-black tracking-tight text-black leading-tight flex items-center mb-0.5" style={{ fontFamily: '"Arial", sans-serif' }}>
+            <div className="flex flex-col justify-center min-w-0">
+              <h1 className="text-sm sm:text-xl md:text-[26px] font-black tracking-tight text-black leading-tight flex items-center mb-0.5" style={{ fontFamily: '"Arial", sans-serif' }}>
                 PSNA
               </h1>
-              <h2 className="text-sm md:text-[15px] font-bold text-black uppercase tracking-wide leading-tight mt-0.5">
+              <h2 className="text-[10px] sm:text-sm md:text-[15px] font-bold text-black uppercase tracking-wide leading-tight mt-0.5 truncate">
                 COLLEGE OF ENGINEERING & TECHNOLOGY
               </h2>
-              <span className="text-[11px] md:text-sm font-bold text-black mt-0.5 tracking-wide">
+              <span className="text-[9px] sm:text-[11px] md:text-sm font-bold text-black mt-0.5 tracking-wide truncate">
                 (An Autonomous Institution)
               </span>
-              <div className="h-[2px] w-full bg-black mt-1 mb-1" />
-              <span className="text-[10px] md:text-[11px] font-extrabold text-black tracking-widest uppercase">
+              <div className="h-[1.5px] sm:h-[2px] w-full bg-black mt-0.5 mb-0.5 hidden sm:block" />
+              <span className="text-[8px] sm:text-[10px] md:text-[11px] font-extrabold text-black tracking-widest uppercase hidden sm:block">
                 AICTE | Anna University | NBA | NAAC A++
               </span>
             </div>
           </div>
 
           {/* Right Side: Contact Details & Profile */}
-          <div className="flex items-center gap-4 xl:gap-8 pl-2 sm:pl-4">
+          <div className="flex items-center gap-3 xl:gap-8 pl-2 sm:pl-4 shrink-0">
             
             {/* Contact Details (Hidden on smaller screens) */}
             <div className="hidden xl:flex items-center gap-8 pr-8 border-r border-gray-200">
@@ -108,11 +108,11 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
               <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
                 <div className="absolute inset-0 bg-gray-50 border border-gray-200 shadow-sm rounded-full flex items-center justify-center z-10 transition-all duration-300 group-hover:bg-gray-100 overflow-hidden">
                   {student?.name ? (
-                    <span className="text-lg md:text-xl font-bold text-gray-800 transition-transform duration-300 group-hover:scale-110">
+                    <span className="text-base md:text-xl font-bold text-gray-800 transition-transform duration-300 group-hover:scale-110">
                       {student.name.charAt(0).toUpperCase()}
                     </span>
                   ) : (
-                    <span className="material-symbols-outlined text-[20px] md:text-[24px] text-gray-700 transition-transform duration-300 group-hover:scale-110">account_circle</span>
+                    <span className="material-symbols-outlined text-[18px] md:text-[24px] text-gray-700 transition-transform duration-300 group-hover:scale-110">account_circle</span>
                   )}
                 </div>
                 <div className="absolute -right-0 -bottom-0 w-2.5 h-2.5 md:w-3 md:h-3 bg-emerald-500 border-2 border-white rounded-full z-20"></div>
@@ -150,7 +150,7 @@ export default function StudentLayout({ children }: { children: React.ReactNode 
           </div>
         </div>
       </header>
-      <main className={`flex-1 w-full flex flex-col ${(pathname === '/student/form' || pathname === '/student') ? 'max-w-none p-0 m-0' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pt-24'}`}>
+      <main className={`flex-1 w-full flex flex-col ${(pathname === '/student/form' || pathname === '/student') ? 'max-w-none p-0 m-0' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pt-20 sm:pt-24'}`}>
         {children}
       </main>
 

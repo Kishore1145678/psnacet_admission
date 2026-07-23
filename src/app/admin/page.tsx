@@ -4,6 +4,7 @@ import collegeImg from '../../image/PSNA college.png';
 import * as XLSX from 'xlsx';
 
 import { StudentDetailModal } from './StudentDetailModal';
+import { normalizeBranchToAbbreviation } from '@/lib/branch-mapping';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 export interface Application {
@@ -760,13 +761,23 @@ export default function AdminDashboard() {
 
         let headerRowIndex = -1;
         for (let i = 0; i < Math.min(10, rows.length); i++) {
-          const rowStr = rows[i].join(' ').toLowerCase();
-          if ((rowStr.includes('appl') || rowStr.includes('application')) && (rowStr.includes('name') || rowStr.includes('student'))) {
+          const rowStr = (rows[i] || []).map(c => String(c)).join(' ').toLowerCase();
+          if ((rowStr.includes('appl') || rowStr.includes('application') || rowStr.includes('id') || rowStr.includes('reg') || rowStr.includes('roll')) && (rowStr.includes('name') || rowStr.includes('student'))) {
             headerRowIndex = i;
             break;
           }
         }
         
+        if (headerRowIndex === -1 && rows.length > 0) {
+          for (let i = 0; i < Math.min(5, rows.length); i++) {
+            const rowStr = (rows[i] || []).map(c => String(c)).join(' ').toLowerCase();
+            if (rowStr.includes('name') || rowStr.includes('student') || rowStr.includes('appl')) {
+              headerRowIndex = i;
+              break;
+            }
+          }
+        }
+
         if (headerRowIndex === -1) continue;
 
         const headers = rows[headerRowIndex].map(h => String(h).toLowerCase().replace(/\s+/g, ' '));
@@ -780,7 +791,7 @@ export default function AdminDashboard() {
             return index !== -1 ? String(row[index]).trim() : '';
           };
           
-          let dob = getVal(['dob', 'date of birth', 'birth']);
+          let dob = getVal(['dob', 'date of birth', 'birth', 'date_of_birth']);
           if (!isNaN(Number(dob)) && dob.trim() !== '') {
             const num = Number(dob);
             if (num > 25569) {
@@ -788,15 +799,22 @@ export default function AdminDashboard() {
                dob = date.toISOString().split('T')[0];
             }
           } else if (typeof dob === 'string') {
+            dob = dob.trim();
             if (dob.includes('.')) {
               const parts = dob.split('.');
-              if (parts.length === 3) dob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              if (parts.length === 3) {
+                dob = parts[0].length === 4 ? `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}` : `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+              }
             } else if (dob.includes('-')) {
               const parts = dob.split('-');
-              if (parts.length === 3 && parts[0].length === 2) dob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              if (parts.length === 3 && parts[0].length === 2) {
+                dob = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+              }
             } else if (dob.includes('/')) {
               const parts = dob.split('/');
-              if (parts.length === 3 && parts[0].length === 2) dob = `${parts[2]}-${parts[1]}-${parts[0]}`;
+              if (parts.length === 3) {
+                dob = parts[0].length === 4 ? `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}` : `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+              }
             }
           }
 
@@ -806,20 +824,30 @@ export default function AdminDashboard() {
              return match ? match[0] : val.replace(/[^0-9]/g, '').slice(0, 10);
           };
 
+          const colBranch = getVal(['academic branch', 'academic_branch', 'department', 'dept', 'branch', 'course']);
+          const rawSheet = sheetName.toUpperCase().trim();
+          const fallbackBranch = (rawSheet.startsWith('SHEET') || rawSheet === 'CSV' || rawSheet === 'DATA')
+            ? (file.name.replace(/\.[^/.]+$/, "").toUpperCase().trim() || 'GENERAL')
+            : rawSheet;
+          const academic_branch = normalizeBranchToAbbreviation(colBranch ? colBranch : fallbackBranch);
+
           const student = {
             application_number: getVal(['app', 'id', 'application number', 'appl']),
             full_name: getVal(['name of the student', 'name', 'full name']),
             date_of_birth: dob,
-            academic_branch: sheetName.toUpperCase().trim(),
+            academic_branch: academic_branch,
             father_name: getVal(['father', 'father name']),
             mother_name: getVal(['mother', 'mother name']),
             father_mobile_number: cleanPhone(getVal(['parent contact', 'father mobile', 'father contact'])),
-            mobile_number: cleanPhone(getVal(['student contact', 'mobile number', 'mobile']))
+            mobile_number: cleanPhone(getVal(['student contact', 'mobile number', 'mobile', 'phone', 'phone number', 'contact']))
           };
+          if (!student.date_of_birth || student.date_of_birth === 'NaN-NaN-NaN' || student.date_of_birth === 'undefined') {
+            student.date_of_birth = '';
+          }
           const missingFields = [];
           if (!student.application_number) missingFields.push('App No');
           if (!student.full_name) missingFields.push('Name');
-          if (!student.date_of_birth || student.date_of_birth === 'NaN-NaN-NaN' || student.date_of_birth === 'undefined') missingFields.push('DOB');
+          if (!student.mobile_number && !student.father_mobile_number) missingFields.push('Phone');
           
           if (missingFields.length === 0) {
             parsedStudents.push(student);
@@ -828,7 +856,7 @@ export default function AdminDashboard() {
             invalidRows.push({
                ...student,
                reason: `Missing: ${missingFields.join(', ')}`,
-               rawRow: `App No: ${student.application_number || '—'} | Name: ${student.full_name || '—'} | DOB: ${student.date_of_birth || '—'} | Phone: ${student.mobile_number || '—'}`
+               rawRow: `App No: ${student.application_number || '—'} | Name: ${student.full_name || '—'} | DOB: ${student.date_of_birth || '—'} | Phone: ${student.mobile_number || student.father_mobile_number || '—'}`
             });
           }
         }
@@ -2327,10 +2355,10 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 <div>
-                  <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls" onChange={handleExcelUpload} />
+                  <input type="file" ref={fileInputRef} className="hidden" accept=".xlsx, .xls, .csv" onChange={handleExcelUpload} />
                   <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 px-5 py-3 bg-[#18281e] text-white text-sm font-bold rounded-xl hover:bg-[#2d4a35] active:scale-[0.98] transition-all shadow-md shrink-0">
                     <span className="material-symbols-outlined text-[20px]">upload_file</span>
-                    Bulk Upload (Excel)
+                    Bulk Upload (Excel / CSV)
                   </button>
                 </div>
               </div>
@@ -2522,7 +2550,7 @@ export default function AdminDashboard() {
                         Direct Contact
                       </h3>
                       <div className="flex flex-col gap-1.5">
-                        <label className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/50">Father&apos;s Mobile Number</label>
+                        <label className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/50">Contact Number</label>
                         <input name="fatherMobile" value={formData.fatherMobile} onChange={handleInputChange} type="tel"
                           className="w-full h-10 px-3.5 bg-white/10 border-0 rounded-xl text-sm text-white placeholder:text-white/30 outline-none focus:ring-2 focus:ring-[#fea619]/40 transition-all"
                           placeholder="+91 00000 00000" />

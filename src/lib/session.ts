@@ -105,7 +105,7 @@ export async function requireAdminSession(): Promise<SessionRow> {
   const s =
     (await getSessionFromCookie(ADMIN_COOKIE)) ||
     (await getSessionFromCookie(LEGACY_COOKIE));
-  if (!s || s.kind !== 'admin') {
+  if (!s || s.kind !== 'admin' || s.admin_username?.toLowerCase() === 'ram') {
     throw new AuthError('Unauthorized', 401);
   }
   return s;

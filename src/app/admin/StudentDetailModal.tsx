@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Application } from './page';
+import { normalizeBranchToAbbreviation } from '@/lib/branch-mapping';
 
 export function StudentDetailModal({ app, onClose, onSave, onPromoteDraft }: { app: Application; onClose: () => void; onSave: (app: Application) => void; onPromoteDraft?: () => void }) {
   const [isEditing, setIsEditing] = useState(false);
@@ -298,7 +299,7 @@ export function StudentDetailModal({ app, onClose, onSave, onPromoteDraft }: { a
             </h2>
             <div className="text-xs font-semibold text-[#737873] mt-2 flex items-center gap-3">
               <span className="font-mono bg-[#f0eded] px-2 py-0.5 rounded-md text-[#18281e] shadow-inner">{app.id}</span>
-              <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">school</span> {app.department || 'Unknown Branch'}</span>
+              <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">school</span> {normalizeBranchToAbbreviation(app.department || '') || 'Unknown Branch'}</span>
               <span className={`px-2 py-0.5 rounded-md font-bold shadow-sm ${app.completionStatus === 'Complete' ? 'bg-[#dcfce7] text-[#14532d]' : 'bg-[#fef3c7] text-[#734d00]'}`}>
                 {app.completionStatus || 'Complete'} Document
               </span>
@@ -397,7 +398,7 @@ export function StudentDetailModal({ app, onClose, onSave, onPromoteDraft }: { a
                 {renderField('Occupation Type', 'father_occupation_type')}
                 {renderField('Occupation', 'father_occupation')}
                 {renderField('Annual Income', 'father_income')}
-                {renderField('Mobile', 'father_mobile')}
+                {renderField('Contact Number', 'father_mobile')}
               </div>
             </section>
             <section className="bg-white rounded-[20px] p-7 shadow-sm border border-[#f0eded] transition-all hover:shadow-md">

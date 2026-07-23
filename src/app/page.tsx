@@ -137,7 +137,7 @@ export default function Home() {
     },
     {
       name: "Mr. Surya Raguram",
-      title: "Director & Managing Director",
+      title: "Trustee",
       desc: "As a dynamic leader and the grandson of the Founder, Shri R. S. Kothandaraman, Mr. Surya Raguram bridges the gap between academic excellence and industrial innovation. He plays a pivotal role in modernizing the institution’s strategic vision, ensuring it remains at the forefront of global technological trends and professional training.Combining his leadership at the college with his expertise as Managing Director of SIPL, he actively fosters industry-institute partnerships to enhance career opportunities for the next generation. Focused on infrastructure development and entrepreneurial growth, he is dedicated to creating a future-ready ecosystem that empowers students to excel in a competitive global landscape.",
       image: "/campus/surya_raguram.jpeg",
       positionClass: "object-[85%_center]",
@@ -151,7 +151,7 @@ export default function Home() {
     }
   ];
 
-  // Login modal state
+  // Modal states
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(false);
   const [showDevelopers, setShowDevelopers] = useState(false);
@@ -233,18 +233,19 @@ export default function Home() {
 
   useGSAP(() => {
     // Determine screen size precisely for responsive layout offsets
-    const isMobile = window.innerWidth < 768;
+    const isSmallMobile = window.innerWidth < 640;
+    const isMobile = window.innerWidth >= 640 && window.innerWidth < 768;
     const isTablet = window.innerWidth >= 768 && window.innerWidth < 1024;
 
     // Scale spacings for smaller screens so cards don't clip off the screen
-    const spacingX = isMobile ? 85 : isTablet ? 120 : 180;
-    const spacingY = isMobile ? 65 : isTablet ? 90 : 140;
+    const spacingX = isSmallMobile ? Math.min(window.innerWidth * 0.22, 60) : isMobile ? 85 : isTablet ? 120 : 180;
+    const spacingY = isSmallMobile ? 45 : isMobile ? 65 : isTablet ? 90 : 140;
 
     // Center cards on mobile/tablet natively or offset slightly for deck look
     gsap.set(card1Ref.current, { x: 0, y: 0, rotation: -6, scale: 0.9, zIndex: 10 });
-    gsap.set(card2Ref.current, { x: isMobile ? 8 : 15, y: -5, rotation: 2, scale: 0.9, zIndex: 20 });
-    gsap.set(card3Ref.current, { x: isMobile ? 16 : 30, y: 5, rotation: -4, scale: 0.9, zIndex: 30 });
-    gsap.set(card4Ref.current, { x: isMobile ? 24 : 45, y: 15, rotation: 6, scale: 0.9, zIndex: 40 });
+    gsap.set(card2Ref.current, { x: (isSmallMobile || isMobile) ? 8 : 15, y: -5, rotation: 2, scale: 0.9, zIndex: 20 });
+    gsap.set(card3Ref.current, { x: (isSmallMobile || isMobile) ? 16 : 30, y: 5, rotation: -4, scale: 0.9, zIndex: 30 });
+    gsap.set(card4Ref.current, { x: (isSmallMobile || isMobile) ? 24 : 45, y: 15, rotation: 6, scale: 0.9, zIndex: 40 });
 
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -257,13 +258,13 @@ export default function Home() {
     });
 
     // 1) Fade text out 
-    tl.to(textRef.current, { opacity: 0, x: isMobile ? 0 : -100, y: isMobile ? -50 : 0, duration: 1 }, 0);
+    tl.to(textRef.current, { opacity: 0, x: (isSmallMobile || isMobile) ? 0 : -100, y: (isSmallMobile || isMobile) ? -50 : 0, duration: 1 }, 0);
 
     // 2) Move the entire grid wrapper to absolute center.
     // On mobile, text is ABOVE the stack. To center the grid, we slide it UPWARDS heavily.
     tl.to(gridContainerRef.current, {
-      x: isMobile ? 0 : isTablet ? "-10vw" : "-24vw",
-      y: isMobile ? "-20vh" : 0,
+      x: (isSmallMobile || isMobile) ? 0 : isTablet ? "-10vw" : "-24vw",
+      y: (isSmallMobile || isMobile) ? "-15vh" : 0,
       duration: 2, ease: "power2.inOut"
     }, 0);
 
@@ -347,19 +348,8 @@ export default function Home() {
             initial={{ y: -40, opacity: 0, filter: "blur(10px)" }}
             animate={{ y: 0, opacity: 1, filter: "blur(0px)" }}
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full flex justify-center pt-3 md:pt-6 z-50 relative px-4 sm:px-8 text-[#063d30] flex-shrink-0"
+            className="w-full flex flex-col md:flex-row items-center justify-center pt-3 md:pt-6 z-50 relative px-4 sm:px-8 text-[#063d30] flex-shrink-0 gap-2.5 md:gap-0"
           >
-            {/* Absolute Top Right CTA aligned with navbar row */}
-            <div className="absolute right-4 top-2 sm:top-2 md:right-8 md:top-6 z-[60]">
-              <button
-                id="get-started-btn"
-                onClick={() => setShowLogin(true)}
-                className="flex flex-row items-center justify-center bg-[#063d30] text-white px-4 sm:px-5 md:px-6 py-1.5 md:py-2 rounded-full font-semibold text-[10px] sm:text-xs md:text-sm tracking-wide transition-all duration-300 hover:scale-105 shadow-xl hover:shadow-[0_10px_30px_rgba(6,61,48,0.3)] cursor-pointer"
-              >
-                Get Started
-              </button>
-            </div>
-
             <nav className="inline-flex items-center gap-1 p-1 md:p-1.5 bg-[#063d30] rounded-[40px] shadow-sm max-w-[95vw] overflow-x-auto custom-scrollbar relative z-10">
               {/* Nav Items */}
               <div className="flex gap-1 pr-1 pl-1 md:pl-2 md:pr-0 items-center">
@@ -379,6 +369,64 @@ export default function Home() {
                 <AnimatedNavLink title="Contact Us" href="#contact" />
               </div>
             </nav>
+
+            {/* Top CTA: Centered on mobile, aligned right on desktop */}
+            <div className="flex justify-center w-full md:w-auto md:absolute md:right-8 md:top-6 z-[60]">
+              <div className="relative flex items-center justify-center gap-2.5 sm:gap-3.5">
+                {/* Animated Hand Pointer pointing towards Registration Form button */}
+                <motion.div
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  onClick={() => setShowLogin(true)}
+                  className="flex items-center cursor-pointer select-none group/hand relative"
+                  aria-label="Hand pointer to Registration Form"
+                >
+                  <motion.div
+                    animate={{
+                      x: [0, 8, 0],
+                      scale: [1, 1.12, 1],
+                    }}
+                    transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                    className="relative flex items-center justify-center p-2 sm:p-2.5 rounded-full bg-white text-[#063d30] shadow-xl border-2 border-[#063d30] hover:bg-[#063d30] hover:text-white transition-colors"
+                  >
+                    {/* Blinking highlight ping behind hand pointer */}
+                    <span className="absolute -inset-1 rounded-full bg-[#063d30]/30 animate-ping pointer-events-none"></span>
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6 rotate-90 drop-shadow" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M9 11.24V7.5a2.5 2.5 0 0 1 5 0v3.74a3 3 0 0 1 2-0.24 3 3 0 0 1 2.5 2.5 3 3 0 0 1-0.5 2.5l-3.2 5.5A4 4 0 0 1 11.36 23H8a4 4 0 0 1-4-4v-5a3 3 0 0 1 3-3h.5v.24z" />
+                    </svg>
+                  </motion.div>
+                </motion.div>
+
+                {/* Registration Form Button with Large Blinking Green & White Highlight Ring */}
+                <div className="relative group">
+                  {/* Outer Blinking Green & White Highlight Ring */}
+                  <motion.div
+                    animate={{
+                      boxShadow: [
+                        "0 0 0 2px rgba(255,255,255,1), 0 0 18px 6px rgba(6,61,48,0.85)",
+                        "0 0 0 5px rgba(6,61,48,1), 0 0 30px 10px rgba(255,255,255,0.95)",
+                        "0 0 0 2px rgba(255,255,255,1), 0 0 18px 6px rgba(6,61,48,0.85)",
+                      ],
+                      scale: [1, 1.04, 1],
+                    }}
+                    transition={{ repeat: Infinity, duration: 1.3, ease: "easeInOut" }}
+                    className="absolute -inset-1.5 sm:-inset-2 rounded-full pointer-events-none z-0"
+                  />
+
+                  {/* Pulsing White Border Ring */}
+                  <span className="absolute -inset-1 rounded-full border-2 border-white animate-pulse pointer-events-none z-0"></span>
+
+                  <button
+                    id="get-started-btn"
+                    onClick={() => setShowLogin(true)}
+                    className="flex flex-row items-center justify-center bg-[#063d30] text-white px-5 sm:px-7 py-2.5 md:py-2.5 rounded-full font-bold text-xs sm:text-sm tracking-wide transition-all duration-300 hover:scale-105 shadow-2xl cursor-pointer relative z-10 border border-white/30"
+                  >
+                    Registration Form
+                  </button>
+                </div>
+              </div>
+            </div>
           </motion.header>
 
           {/* Hero Grid */}
@@ -387,15 +435,15 @@ export default function Home() {
             {/* Left Column: Typography */}
             <div className="w-full flex flex-col justify-center relative z-20">
               <h1
-                className="font-black uppercase text-[#063d30] mb-3 sm:mb-4 md:mb-6 flex flex-col"
-                style={{ fontSize: "clamp(2rem, 7vw, 4.5rem)", letterSpacing: '-0.04em', lineHeight: 0.88, transformOrigin: 'left top' }}
+                className="font-black uppercase text-[#063d30] mb-2 sm:mb-4 md:mb-6 flex flex-col"
+                style={{ fontSize: "clamp(1.6rem, 6.5vw, 4.5rem)", letterSpacing: '-0.04em', lineHeight: 0.9, transformOrigin: 'left top' }}
               >
                 <motion.span
                   initial={{ opacity: 0, y: 60, scale: 0.95, filter: "blur(10px)" }}
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   transition={{ type: "spring", stiffness: 45, damping: 15, delay: 0.1 }}
                   className="block"
-                  style={{ transform: 'scaleY(1.15)' }}
+                  style={{ transform: 'scaleY(1.12)' }}
                 >
                   BRINGING YOUR
                 </motion.span>
@@ -404,7 +452,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
                   transition={{ type: "spring", stiffness: 45, damping: 15, delay: 0.4 }}
                   className="block mt-1"
-                  style={{ transform: 'scaleY(1.15)' }}
+                  style={{ transform: 'scaleY(1.12)' }}
                 >
                   VISION TO LIFE.
                 </motion.span>
@@ -413,14 +461,14 @@ export default function Home() {
                 initial={{ opacity: 0, y: 30, filter: "blur(10px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                className="font-bold text-[#063d30] max-w-[32rem] leading-[1.3] mb-3 sm:mb-4 tracking-tight mt-3 sm:mt-4 hidden sm:block text-justify" style={{ fontSize: "clamp(13px, 2vw, 18px)" }}
+                className="font-bold text-[#063d30] max-w-[32rem] leading-[1.35] mb-3 sm:mb-4 tracking-tight mt-2 sm:mt-4 text-left text-xs sm:text-base md:text-lg opacity-90"
               >
-                Your journey begins with curiosity, grows with dedication, and leads to excellence Here, every step shapes your success story.
+                Your journey begins with curiosity, grows with dedication, and leads to excellence. Here, every step shapes your success story.
               </motion.p>
             </div>
 
             {/* Right Column: Visuals */}
-            <div className="w-full relative h-[200px] xs:h-[240px] sm:h-[320px] md:h-[420px] lg:h-[400px] xl:h-[450px] flex items-center justify-center lg:mt-0">
+            <div className="w-full relative h-[180px] xs:h-[220px] sm:h-[320px] md:h-[420px] lg:h-[400px] xl:h-[450px] flex items-center justify-center lg:mt-0">
 
               {/* Back Card */}
               <motion.div
@@ -437,7 +485,7 @@ export default function Home() {
                 }}
                 transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.5 }}
                 style={{ y: backCardY, x: "2%", marginTop: "-2%", marginBottom: "-2%" }}
-                className="absolute w-[180px] sm:w-[260px] md:w-[300px] lg:w-[300px] xl:w-[340px] h-[120px] sm:h-[180px] md:h-[200px] lg:h-[200px] xl:h-[220px] bg-gray-200 border-[2px] md:border-[3px] border-white/60 rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden shadow-xl"
+                className="absolute w-[150px] xs:w-[180px] sm:w-[260px] md:w-[300px] lg:w-[300px] xl:w-[340px] h-[100px] xs:h-[120px] sm:h-[180px] md:h-[200px] lg:h-[200px] xl:h-[220px] bg-gray-200 border-[2px] md:border-[3px] border-white/60 rounded-[1rem] sm:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden shadow-xl"
               >
                 <motion.div
                   animate={{ y: [0, -10, 0] }}
@@ -464,7 +512,7 @@ export default function Home() {
                 }}
                 transition={{ type: "spring", stiffness: 40, damping: 20, delay: 0.7 }}
                 style={{ y: frontCardY, x: "-2%", marginTop: "2%", marginBottom: "2%" }}
-                className="absolute w-[220px] sm:w-[320px] md:w-[400px] lg:w-[400px] xl:w-[460px] h-[140px] sm:h-[220px] md:h-[260px] lg:h-[260px] xl:h-[300px] bg-white border-[2px] md:border-[3px] border-white rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
+                className="absolute w-[185px] xs:w-[220px] sm:w-[320px] md:w-[400px] lg:w-[400px] xl:w-[460px] h-[120px] xs:h-[140px] sm:h-[220px] md:h-[260px] lg:h-[260px] xl:h-[300px] bg-white border-[2px] md:border-[3px] border-white rounded-[1rem] sm:rounded-[1.2rem] lg:rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.15)]"
               >
                 <motion.div
                   animate={{ y: [0, 10, 0] }}
@@ -543,7 +591,7 @@ export default function Home() {
                 transition={{ duration: 0.8, delay: 0.1 }}
                 className="mb-8 w-full text-left"
               >
-                <h2 className="leading-[0.95] font-black uppercase text-white tracking-tighter" style={{ fontSize: "clamp(2.5rem, 8vw, 3.5rem)", transform: 'scaleY(1.05)', transformOrigin: 'left top' }}>
+                <h2 className="leading-[0.95] font-black uppercase text-white tracking-tighter" style={{ fontSize: "clamp(1.6rem, 6vw, 3.5rem)", transform: 'scaleY(1.05)', transformOrigin: 'left top' }}>
                   INSPIRE EXCELLENCE <br />
                   AND CREATE <br />
                   LASTING IMPACT.
@@ -575,44 +623,44 @@ export default function Home() {
           {/* Right Column (Animated Typography Sliding "We") */}
           <div ref={phrasesContainerRef} className="w-full flex flex-col justify-center relative min-h-[50vh] sm:min-h-[60vh] lg:min-h-[160vh] py-[8vh] sm:py-[15vh]">
 
-            <div className="flex flex-col font-semibold leading-[1.05] text-[#f5f4ef] gap-2 md:gap-3 lg:gap-4 overflow-hidden" style={{ fontSize: "clamp(1.3rem, 4vw, 2.75rem)", letterSpacing: "-0.02em" }}>
+            <div className="flex flex-col font-semibold leading-[1.05] text-[#f5f4ef] gap-2 md:gap-3 lg:gap-4 overflow-hidden" style={{ fontSize: "clamp(1.15rem, 4vw, 2.75rem)", letterSpacing: "-0.02em" }}>
 
               {/* Phrase 0 */}
               <div className="flex w-full items-start">
-                <div className="w-[20%] lg:w-[25%] pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
+                <div className="w-[22%] sm:w-[20%] lg:w-[25%] pr-2 sm:pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
                   {activeLine === 0 && <motion.div layoutId="we-pointer">We</motion.div>}
                 </div>
-                <div className="w-[80%] lg:w-[75%]">
+                <div className="w-[78%] sm:w-[80%] lg:w-[75%]">
                   <RevealText text="keep exploring." delay={0.1} />
                 </div>
               </div>
 
               {/* Phrase 1 */}
               <div className="flex w-full items-start">
-                <div className="w-[20%] lg:w-[25%] pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
+                <div className="w-[22%] sm:w-[20%] lg:w-[25%] pr-2 sm:pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
                   {activeLine === 1 && <motion.div layoutId="we-pointer">We</motion.div>}
                 </div>
-                <div className="w-[80%] lg:w-[75%]">
+                <div className="w-[78%] sm:w-[80%] lg:w-[75%]">
                   <RevealText text="work together." delay={0.2} />
                 </div>
               </div>
 
               {/* Phrase 2 */}
               <div className="flex w-full items-start">
-                <div className="w-[20%] lg:w-[25%] pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
+                <div className="w-[22%] sm:w-[20%] lg:w-[25%] pr-2 sm:pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
                   {activeLine === 2 && <motion.div layoutId="we-pointer">We</motion.div>}
                 </div>
-                <div className="w-[80%] lg:w-[75%]">
+                <div className="w-[78%] sm:w-[80%] lg:w-[75%]">
                   <RevealText text="grow brilliance." delay={0.3} />
                 </div>
               </div>
 
               {/* Phrase 3 */}
               <div className="flex w-full items-start">
-                <div className="w-[20%] lg:w-[25%] pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
+                <div className="w-[22%] sm:w-[20%] lg:w-[25%] pr-2 sm:pr-4 md:pr-6 lg:pr-8 text-right text-[#ffda24] drop-shadow-md min-h-[1.1em]">
                   {activeLine === 3 && <motion.div layoutId="we-pointer">We</motion.div>}
                 </div>
-                <div className="w-[80%] lg:w-[75%]">
+                <div className="w-[78%] sm:w-[80%] lg:w-[75%]">
                   <RevealText text="shape tomorrow." delay={0.4} />
                 </div>
               </div>
@@ -774,17 +822,17 @@ export default function Home() {
       {/* ------------------------- */}
       <section id="blog" ref={founderSectionRef} className="w-full bg-white text-[#063d30] py-16 sm:py-24 relative overflow-hidden flex flex-col items-center justify-center">
 
-        <div className="text-center px-4 sm:px-6 mb-12 sm:mb-16 max-w-3xl mx-auto z-10 relative">
-          <h2 className="font-black text-3xl sm:text-4xl md:text-5xl lg:text-5xl tracking-tighter mb-4 text-[#ffda24]">
+        <div className="text-center px-4 sm:px-6 mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto z-10 relative">
+          <h2 className="font-black text-2xl sm:text-4xl md:text-5xl lg:text-5xl tracking-tighter mb-3 sm:mb-4 text-[#ffda24]">
             Driving Innovation in Education
           </h2>
-          <div className="w-20 h-1 bg-[#ffda24] mx-auto rounded-full mb-6"></div>
-          <p className="text-[#063d30]/70 text-lg font-medium text-justify">
+          <div className="w-16 sm:w-20 h-1 bg-[#ffda24] mx-auto rounded-full mb-4 sm:mb-6"></div>
+          <p className="text-[#063d30]/70 text-sm sm:text-lg font-medium text-center sm:text-justify">
             The pillars supporting quality education and innovation.
           </p>
         </div>
 
-        <div className="w-full max-w-[75rem] mx-auto flex flex-col md:flex-row items-center md:items-center gap-8 md:gap-16 relative z-10 px-4 lg:px-12">
+        <div className="w-full max-w-[75rem] mx-auto flex flex-col md:flex-row items-center md:items-center gap-6 sm:gap-8 md:gap-16 relative z-10 px-4 lg:px-12">
 
           {/* GSAP wrapper for Left: Founder Image */}
           <div className="founder-img-field w-full md:w-[45%] flex justify-center md:justify-end shrink-0">
@@ -795,7 +843,7 @@ export default function Home() {
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95, x: 20 }}
                 transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-                className="relative w-[280px] h-[360px] md:w-[320px] md:h-[400px] lg:w-[400px] lg:h-[480px] rounded-[2rem] overflow-hidden shadow-2xl bg-gray-50 flex items-center justify-center group cursor-pointer"
+                className="relative w-[230px] h-[300px] sm:w-[280px] sm:h-[360px] md:w-[320px] md:h-[400px] lg:w-[400px] lg:h-[480px] rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl bg-gray-50 flex items-center justify-center group cursor-pointer"
               >
                 <img src={founders[founderIndex].image} alt={founders[founderIndex].name} className={`w-full h-full object-cover ${founders[founderIndex].positionClass || 'object-center'} transition-transform duration-700 group-hover:scale-105`} />
               </motion.div>
@@ -803,7 +851,7 @@ export default function Home() {
           </div>
 
           {/* GSAP wrapper Right: Text Content */}
-          <div className="founder-text-field w-full md:w-[55%] flex flex-col justify-center text-center md:text-left h-full py-4 md:py-10">
+          <div className="founder-text-field w-full md:w-[55%] flex flex-col justify-center text-center md:text-left h-full py-2 sm:py-4 md:py-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={`text-${founderIndex}`}
@@ -813,15 +861,15 @@ export default function Home() {
                 transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
                 className="w-full"
               >
-                <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-[#063d30] mb-2 tracking-tight">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#063d30] mb-1 sm:mb-2 tracking-tight">
                   {founders[founderIndex].name}
                 </h3>
-                <span className="text-xl md:text-2xl font-bold text-[#ffda24] mb-6 block uppercase tracking-wide">
+                <span className="text-base sm:text-xl md:text-2xl font-bold text-[#ffda24] mb-4 sm:mb-6 block uppercase tracking-wide">
                   {founders[founderIndex].title}
                 </span>
 
                 <div className="relative">
-                  <p className="text-black text-lg md:text-xl leading-[1.8] font-medium max-w-2xl lg:max-w-xl mb-12 relative z-10 text-justify whitespace-pre-line">
+                  <p className="text-black text-sm sm:text-lg md:text-xl leading-[1.6] sm:leading-[1.8] font-medium max-w-2xl lg:max-w-xl mb-6 md:mb-12 relative z-10 text-left sm:text-justify whitespace-pre-line">
                     {founders[founderIndex].desc}
                   </p>
                 </div>
@@ -829,12 +877,12 @@ export default function Home() {
             </AnimatePresence>
 
             {/* Carousel Dots indicator (kept outside animate presence so it doesn't flicker) */}
-            <div className="flex gap-4 justify-center md:justify-start mt-auto pt-4 relative z-20">
+            <div className="flex gap-2.5 sm:gap-4 justify-center md:justify-start mt-auto pt-2 sm:pt-4 relative z-20">
               {founders.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setFounderIndex(i)}
-                  className={`w-14 h-1.5 rounded-full transition-all duration-500 ${founderIndex === i ? 'bg-[#ffda24] scale-y-125' : 'bg-gray-200 hover:bg-gray-300'}`}
+                  className={`w-10 sm:w-14 h-1.5 rounded-full transition-all duration-500 ${founderIndex === i ? 'bg-[#ffda24] scale-y-125' : 'bg-gray-200 hover:bg-gray-300'}`}
                 />
               ))}
             </div>
@@ -846,14 +894,14 @@ export default function Home() {
       {/* ------------------------- */}
       {/* 6) PLACEMENT & COMPANIES SHOWCASE */}
       {/* ------------------------- */}
-      <section className="w-[calc(100%-1rem)] sm:w-[calc(100%-4rem)] max-w-[100rem] mx-auto bg-[#063d30] text-white py-12 sm:py-16 lg:py-24 relative overflow-hidden flex flex-col items-center z-10 rounded-[2rem] sm:rounded-[4rem] my-8 sm:my-16 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+      <section className="w-[calc(100%-1rem)] sm:w-[calc(100%-4rem)] max-w-[100rem] mx-auto bg-[#063d30] text-white py-8 sm:py-16 lg:py-24 relative overflow-hidden flex flex-col items-center z-10 rounded-[1.5rem] sm:rounded-[4rem] my-6 sm:my-16 shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
 
         {/* Section Header */}
-        <div className="text-center px-4 sm:px-6 mb-8 sm:mb-12 lg:mb-16 max-w-3xl mx-auto">
-          <h2 className="font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tighter mb-3 sm:mb-4 text-white">
+        <div className="text-center px-4 sm:px-6 mb-6 sm:mb-12 lg:mb-16 max-w-3xl mx-auto">
+          <h2 className="font-black text-2xl sm:text-4xl md:text-5xl lg:text-6xl tracking-tighter mb-2 sm:mb-4 text-white">
             Our Placement Impact
           </h2>
-          <p className="text-white/80 text-base sm:text-lg md:text-xl font-medium text-justify">
+          <p className="text-white/80 text-sm sm:text-lg md:text-xl font-medium text-center sm:text-justify">
             Empowering students with opportunities across leading global companies
           </p>
         </div>
@@ -861,17 +909,17 @@ export default function Home() {
 
 
         {/* Marquee Wrapper */}
-        <div className="w-full relative py-6 sm:py-8 lg:py-12 bg-gradient-to-r from-transparent via-[#084A3B] to-transparent border-y border-white/5 overflow-hidden">
+        <div className="w-full relative py-4 sm:py-8 lg:py-12 bg-gradient-to-r from-transparent via-[#084A3B] to-transparent border-y border-white/5 overflow-hidden">
 
           {/* Edge Gradient Masks (Left & Right) */}
-          <div className="absolute inset-y-0 left-0 w-32 md:w-64 bg-gradient-to-r from-[#063d30] to-transparent z-20 pointer-events-none"></div>
-          <div className="absolute inset-y-0 right-0 w-32 md:w-64 bg-gradient-to-l from-[#063d30] to-transparent z-20 pointer-events-none"></div>
+          <div className="absolute inset-y-0 left-0 w-8 sm:w-24 md:w-64 bg-gradient-to-r from-[#063d30] to-transparent z-20 pointer-events-none"></div>
+          <div className="absolute inset-y-0 right-0 w-8 sm:w-24 md:w-64 bg-gradient-to-l from-[#063d30] to-transparent z-20 pointer-events-none"></div>
 
           <div className="flex w-max animate-[marquee_40s_linear_infinite] hover:[animation-play-state:paused]">
 
             {/* Array is mapped twice for seamless infinite scrolling */}
             {[...Array(2)].map((_, arrayIndex) => (
-              <div key={arrayIndex} className="flex items-center gap-12 md:gap-20 px-8 md:px-12">
+              <div key={arrayIndex} className="flex items-center gap-8 md:gap-20 px-4 md:px-12">
                 {[
                   "Zoho",
                   "Cognizant",
@@ -890,7 +938,7 @@ export default function Home() {
                     key={i}
                     className="group relative flex items-center justify-center px-2 sm:px-4 py-1 sm:py-2 rounded-xl transition-all duration-300 hover:scale-[1.12] cursor-pointer"
                   >
-                    <span className="font-black text-base sm:text-xl md:text-2xl lg:text-3xl tracking-tighter text-white/40 group-hover:text-white transition-all duration-300 whitespace-nowrap">
+                    <span className="font-black text-sm sm:text-xl md:text-2xl lg:text-3xl tracking-tighter text-white/40 group-hover:text-white transition-all duration-300 whitespace-nowrap">
                       {name}
                     </span>
                   </div>
@@ -905,19 +953,19 @@ export default function Home() {
       {/* ------------------------- */}
       {/* 7) CONTACT / FOOTER SECTION */}
       {/* ------------------------- */}
-      <section id="contact" className="w-full bg-[#eef1ef] pt-12 sm:pt-16 lg:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-12 flex flex-col items-center overflow-hidden">
+      <section id="contact" className="w-full bg-[#eef1ef] pt-8 sm:pt-16 lg:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-12 flex flex-col items-center overflow-hidden">
         <div className="w-full max-w-[90rem] mx-auto flex flex-col justify-between relative">
 
           {/* Top Half: Text LEFT, Image RIGHT */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 sm:gap-12 w-full mb-10 sm:mb-20 lg:mb-32 relative z-10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-12 w-full mb-8 sm:mb-20 lg:mb-32 relative z-10">
 
             {/* Massive Typography & Paragraph - LEFT */}
             <div className="flex flex-col items-start text-left mx-auto sm:mx-0 shrink-0">
-              <h2 className="font-black text-[#033626] uppercase tracking-tighter" style={{ fontSize: "clamp(2rem, 6vw, 5rem)", lineHeight: "0.85" }}>
+              <h2 className="font-black text-[#033626] uppercase tracking-tighter" style={{ fontSize: "clamp(1.8rem, 6vw, 5rem)", lineHeight: "0.88" }}>
                 Empowered <br />
                 Futures
               </h2>
-              <p className="mt-6 text-sm sm:text-base text-[#033626]/75 leading-relaxed max-w-[320px] sm:max-w-[460px] font-medium text-justify">
+              <p className="mt-4 sm:mt-6 text-xs sm:text-base text-[#033626]/75 leading-relaxed max-w-[300px] sm:max-w-[460px] font-medium text-left sm:text-justify">
                 Built on strong values of integrity, innovation, and dedication, it nurtures future-ready professionals.
                 Its foundation reflects compassion, resilience, and a commitment to meaningful change,
                 inspiring excellence and shaping impactful journeys for every learner.
@@ -925,10 +973,10 @@ export default function Home() {
             </div>
 
             {/* Image Stack Overlay - RIGHT */}
-            <div className="relative w-[220px] h-[160px] sm:w-[320px] sm:h-[220px] md:w-[400px] md:h-[280px] lg:w-[500px] lg:h-[340px] z-20 mt-0 sm:mt-0 shrink-0 mx-auto sm:mx-0 cursor-pointer active:scale-[0.92] transition-transform duration-300 hover:shadow-xl">
-              <div className="absolute top-6 left-6 w-full h-full bg-[#d6ddd9] rounded-[2rem] transition-all duration-300"></div>
-              <div className="absolute top-3 left-3 w-full h-full bg-[#dfe5e1] rounded-[2rem] transition-all duration-300"></div>
-              <div className="absolute top-0 left-0 w-full h-full rounded-[2rem] overflow-hidden shadow-2xl border border-white/20 transition-all duration-300">
+            <div className="relative w-[210px] sm:w-[320px] md:w-[400px] lg:w-[500px] h-[145px] sm:h-[220px] md:h-[280px] lg:h-[340px] z-20 mt-0 sm:mt-0 shrink-0 mx-auto sm:mx-0 cursor-pointer active:scale-[0.92] transition-transform duration-300 hover:shadow-xl">
+              <div className="absolute top-2 left-2 sm:top-6 sm:left-6 w-full h-full bg-[#d6ddd9] rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-300"></div>
+              <div className="absolute top-1 left-1 sm:top-3 sm:left-3 w-full h-full bg-[#dfe5e1] rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-300"></div>
+              <div className="absolute top-0 left-0 w-full h-full rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl border border-white/20 transition-all duration-300">
                 <img src="/campus/dji_0026.JPG" className="w-full h-full object-cover brightness-[0.8] contrast-125 hover:scale-105 transition-transform duration-700" alt="Contact visual" />
               </div>
             </div>
@@ -976,7 +1024,13 @@ export default function Home() {
                 <span className="w-1 h-1 rounded-full bg-[#033626]/40 mx-2 hidden sm:block"></span>
                 <a href="#" className="hover:text-[#033626] transition-colors">Privacy Policy</a>
                 <span className="w-1 h-1 rounded-full bg-[#033626]/40 mx-2 hidden sm:block"></span>
-                <button onClick={() => setShowDevelopers(true)} className="hover:text-[#033626] transition-colors text-left sm:text-center mt-2 sm:mt-0 font-bold">Application Developed by</button>
+                <button
+                  type="button"
+                  onClick={() => setShowDevelopers(true)}
+                  className="hover:text-[#033626] font-semibold text-[#033626] hover:underline transition-all cursor-pointer"
+                >
+                  Developers
+                </button>
               </div>
 
             </div>
@@ -984,6 +1038,125 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ========================= */}
+      {/* DEVELOPERS MODAL */}
+      {/* ========================= */}
+      <AnimatePresence>
+        {showDevelopers && (
+          <motion.div
+            key="developers-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          >
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/60 backdrop-blur-md"
+              onClick={() => setShowDevelopers(false)}
+            />
+
+            {/* Modal Box */}
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 25 }}
+              className="relative z-10 w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-[#e5e2e1] overflow-hidden"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setShowDevelopers(false)}
+                className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#f0eded] hover:bg-[#e5e2e1] text-[#063d30] flex items-center justify-center transition-colors cursor-pointer"
+                aria-label="Close"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+
+              {/* Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 rounded-2xl bg-[#063d30] text-[#ffda24] flex items-center justify-center shadow-md shrink-0">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="16 18 22 12 16 6" />
+                    <polyline points="8 6 2 12 8 18" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-headline font-black text-[#063d30] text-lg sm:text-xl leading-tight">
+                    Development Team
+                  </h3>
+                  <p className="text-xs font-semibold text-[#063d30]/80 mt-0.5">
+                    Developed by Information Technology Students
+                  </p>
+                </div>
+              </div>
+
+              {/* Developers List */}
+              <div className="space-y-3">
+                {/* Developer 1 */}
+                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
+                  <div>
+                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
+                      Ramlakshman S. M. <span className="text-xs font-normal text-[#063d30]/70">(3rd Year)</span>
+                    </h4>
+                    <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                      Backend Developer
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                    BE
+                  </div>
+                </div>
+
+                {/* Developer 2 */}
+                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
+                  <div>
+                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
+                      Naresh Kumar B. <span className="text-xs font-normal text-[#063d30]/70">(3rd Year)</span>
+                    </h4>
+                    <p className="text-xs font-semibold text-amber-700 mt-0.5">
+                      Frontend Developer
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
+                    FE
+                  </div>
+                </div>
+
+                {/* Developer 3 */}
+                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
+                  <div>
+                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
+                      Kishore S. <span className="text-xs font-normal text-[#063d30]/70">(2nd Year)</span>
+                    </h4>
+                    <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                      Backend Developer
+                    </p>
+                  </div>
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
+                    BE
+                  </div>
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-6 pt-4 border-t border-[#e5e2e1] text-center">
+                <button
+                  onClick={() => setShowDevelopers(false)}
+                  className="w-full py-2.5 rounded-xl bg-[#063d30] hover:bg-[#042d23] text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ========================= */}
       {/* FULL-SCREEN GLASSMORPHISM LOGIN  */}
@@ -1201,73 +1374,7 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* ========================= */}
-      {/* DEVELOPERS MODAL  */}
-      {/* ========================= */}
-      <AnimatePresence>
-        {showDevelopers && (
-          <motion.div
-            key="developers-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="fixed inset-0 z-[999] flex items-center justify-center p-4 sm:p-8"
-          >
-            {/* Background Blur */}
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowDevelopers(false)} />
 
-            <motion.div
-              initial={{ scale: 0.9, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.9, y: 20, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative w-full max-w-5xl max-h-[90vh] bg-[rgba(23,26,29,0.75)] backdrop-blur-[32px] border border-white/10 rounded-[2rem] p-6 sm:p-10 shadow-2xl overflow-y-auto custom-scrollbar"
-              style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}
-            >
-              <button
-                onClick={(e) => { e.stopPropagation(); setShowDevelopers(false); }}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white/80 hover:text-white transition-all duration-200 z-[99]"
-                aria-label="Close"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
-              </button>
-
-              <div className="mb-10 text-center relative z-10">
-                <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-2 font-sans">Application Developers</h2>
-                <div className="w-16 h-1 bg-[#ffda24] mx-auto rounded-full mb-4"></div>
-                <p className="text-gray-300 text-sm sm:text-base font-medium">The team behind the project</p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-12 relative z-10 mt-8">
-                {[
-                  { name: "NARESH KUMAR B", dept: "INFORMATION TECHNOLOGY", role: "FRONTEND DEVELOPER", img: "/team/naresh.jpeg", imgClass: "" },
-                  { name: "RAMLAKSHMAN SM", dept: "INFORMATION TECHNOLOGY", role: "BACKEND DEVELOPER", img: "/team/ramlakshman_v2.jpeg", imgClass: "" },
-                  { name: "KISHORE S", dept: "INFORMATION TECHNOLOGY", role: "BACKEND DEVELOPER", img: "/team/kishore_v2.jpeg", imgClass: "" }
-                ].map((dev, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 * idx + 0.2 }}
-                    className="flex flex-col items-center bg-white/5 rounded-[2rem] p-8 md:p-10 border border-white/10 hover:bg-white/10 hover:-translate-y-3 transition-all duration-300 group hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)] cursor-pointer"
-                    onClick={() => setFullscreenImage(dev.img)}
-                  >
-                    <div className="w-48 h-48 md:w-60 md:h-60 rounded-full overflow-hidden mb-8 border-[4px] border-[#ffda24] shadow-[0_0_35px_rgba(255,218,36,0.3)]">
-                      <img src={dev.img} alt={dev.name} className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${dev.imgClass}`} />
-                    </div>
-                    <h3 className="text-lg md:text-xl font-bold text-white mb-2 text-center">{dev.name}</h3>
-                    <p className="text-xs md:text-sm font-bold tracking-[0.15em] text-[#ffda24] uppercase mb-4 text-center">{dev.role}</p>
-                    <p className="text-[10px] md:text-xs text-gray-400 font-bold tracking-widest uppercase text-center">{dev.dept}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Global CSS settings */}
       <style dangerouslySetInnerHTML={{

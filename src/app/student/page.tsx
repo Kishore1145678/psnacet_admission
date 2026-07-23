@@ -124,7 +124,7 @@ export default function StudentDashboard() {
           Welcome, {student.name}
         </h1>
         <p className="text-gray-600 text-sm leading-relaxed mb-8">
-          You are signed in with your application number. Your password is based on your date of birth (DDMMYYYY), as issued when you were enrolled.
+          You are signed in with your application number. Your default password is your Phone Number, as issued when you were enrolled.
         </p>
         {accessStatus && accessStatus.status === 'active' && (
           <div className="mb-6 bg-blue-50 border border-blue-200 rounded-xl p-4">

@@ -23,16 +23,47 @@ export function PhotoCapture({ onPhotoSelect, initialPhoto }: PhotoCaptureProps)
 
   const startCamera = async () => {
     setError('');
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+      setError('Browser environment not available.');
+      return;
+    }
+
+    const mediaDevices = navigator.mediaDevices || (
+      ((navigator as any).getUserMedia ||
+      (navigator as any).webkitGetUserMedia ||
+      (navigator as any).mozGetUserMedia)
+        ? {
+            getUserMedia: (constraints: MediaStreamConstraints) => {
+              const legacyGetUserMedia =
+                (navigator as any).getUserMedia ||
+                (navigator as any).webkitGetUserMedia ||
+                (navigator as any).mozGetUserMedia;
+              return new Promise<MediaStream>((resolve, reject) => {
+                legacyGetUserMedia.call(navigator, constraints, resolve, reject);
+              });
+            },
+          }
+        : null
+    );
+
+    if (!mediaDevices || typeof mediaDevices.getUserMedia !== 'function') {
+      setError('Camera access is not supported on this browser or connection. Note: Browsers require HTTPS or localhost for camera access. Please use the upload photo option below.');
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await mediaDevices.getUserMedia({ 
         video: { facingMode: 'user' } 
       });
       streamRef.current = stream;
-      streamRef.current = stream;
       setMode('camera');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Camera error:', err);
-      setError('Unable to access camera. Please check permissions or use the upload option.');
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setError('Camera permission was denied. Please grant camera permission in your browser or upload a photo.');
+      } else {
+        setError('Unable to access camera. Please check permissions or use the upload photo option below.');
+      }
     }
   };
 

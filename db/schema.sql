@@ -1,4 +1,4 @@
--- Run once against your PostgreSQL database (see scripts/setup-db.mjs)
+
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
@@ -56,11 +56,16 @@ CREATE TABLE IF NOT EXISTS student_application_forms (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_forms_student_created ON student_application_forms (student_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_forms_status ON student_application_forms (status);
-
-CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
-CREATE INDEX IF NOT EXISTS idx_students_created ON students (created_at DESC);
+CREATE TABLE IF NOT EXISTS student_documents (
+  id BIGSERIAL PRIMARY KEY,
+  student_id UUID NOT NULL REFERENCES students (id) ON DELETE CASCADE,
+  document_category TEXT NOT NULL,
+  file_name TEXT NOT NULL,
+  file_key TEXT NOT NULL UNIQUE,
+  file_size INT NOT NULL,
+  file_type TEXT NOT NULL,
+  uploaded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 
 CREATE TABLE IF NOT EXISTS admin_settings (
   id BIGSERIAL PRIMARY KEY,
@@ -68,3 +73,17 @@ CREATE TABLE IF NOT EXISTS admin_settings (
   value TEXT,
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+
+CREATE INDEX IF NOT EXISTS idx_forms_student_created ON student_application_forms (student_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_forms_status ON student_application_forms (status);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
+CREATE INDEX IF NOT EXISTS idx_students_created ON students (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_docs_student ON student_documents (student_id);
+CREATE INDEX IF NOT EXISTS idx_docs_category ON student_documents (document_category);
+
+
+INSERT INTO admin_accounts (username, password_hash)
+VALUES ('forgotpsna1984', '$2a$10$B00oW514i3gDk2vU3V73d.E3u19WdJv920YvBfH4u2Sg1kZf3d1lW')
+ON CONFLICT (username) DO NOTHING;
+

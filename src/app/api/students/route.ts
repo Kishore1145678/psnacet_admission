@@ -158,7 +158,7 @@ export async function POST(req: Request) {
     const institutional_id = makeInstitutionalId();
 
     const accessExpiresAt = new Date();
-    accessExpiresAt.setDate(accessExpiresAt.getDate() + 4);
+    accessExpiresAt.setDate(accessExpiresAt.getDate() + 5);
 
     const { rows } = await query<StudentRow>(
       `INSERT INTO students (

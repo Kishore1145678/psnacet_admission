@@ -1,5 +1,5 @@
-/** Normalize a Postgres `date` (or ISO string) to YYYY-MM-DD for password derivation. */
-export function pgDateToYmd(v: Date | string): string {
+export function pgDateToYmd(v: Date | string | null | undefined): string {
+  if (!v) return '';
   if (v instanceof Date) {
     // Use local calendar fields to avoid timezone backshift (e.g. 12 -> 11).
     const y = v.getFullYear();
@@ -24,3 +24,21 @@ export function expectedPasswordFromIsoDate(isoDate: string): string {
 export function normalizeApplicationNumber(raw: string): string {
   return raw.trim().replace(/^#/, '');
 }
+
+/** Verify student password using their registered phone number (mobile_number or father_mobile_number) */
+export function verifyStudentPhonePassword(enteredPassword: string, mobileNumber?: string, fatherMobileNumber?: string): boolean {
+  const trimmedEntered = enteredPassword.trim();
+  if (!trimmedEntered) return false;
+  const cleanEntered = trimmedEntered.replace(/\D/g, '');
+  const phones = [mobileNumber, fatherMobileNumber].filter(Boolean) as string[];
+
+  for (const phone of phones) {
+    const trimmedPhone = phone.trim();
+    if (!trimmedPhone) continue;
+    if (trimmedEntered === trimmedPhone) return true;
+    const cleanPhone = trimmedPhone.replace(/\D/g, '');
+    if (cleanEntered.length > 0 && cleanEntered === cleanPhone) return true;
+  }
+  return false;
+}
+

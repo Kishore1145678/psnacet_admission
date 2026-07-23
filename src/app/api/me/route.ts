@@ -9,6 +9,9 @@ export async function GET() {
   }
 
   if (session.kind === 'admin') {
+    if (session.admin_username?.toLowerCase() === 'ram') {
+      return NextResponse.json({ role: null }, { status: 401 });
+    }
     return NextResponse.json({
       role: 'admin',
       username: session.admin_username,

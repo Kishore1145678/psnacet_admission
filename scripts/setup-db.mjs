@@ -30,6 +30,18 @@ async function ensureDatabaseExists() {
     throw new Error('DATABASE_URL must include a database name.');
   }
 
+  // Try connecting directly to the target database first
+  try {
+    const direct = new pg.Client({ connectionString: DATABASE_URL });
+    await direct.connect();
+    await direct.end();
+    console.log(`Database exists and is reachable: ${dbName}`);
+    return;
+  } catch (e) {
+    // If target database doesn't exist, fallback to adminUrl connection
+    console.log(`Direct connection to ${dbName} failed (${e.message}), attempting admin check...`);
+  }
+
   const adminUrl = new URL(DATABASE_URL);
   adminUrl.pathname = '/postgres';
 
@@ -129,15 +141,23 @@ async function main() {
     // Columns might not exist yet, ignore
   }
 
-  const hash = await bcrypt.hash('ram@1212', 10);
+  // Remove legacy admin account 'ram' if present
+  try {
+    await client.query(`DELETE FROM admin_accounts WHERE username = 'ram'`);
+  } catch (e) {
+    // Ignore error if table doesn't exist
+  }
+
+  const hash = await bcrypt.hash('forgotpsnacet1984', 10);
   await client.query(
     `INSERT INTO admin_accounts (username, password_hash)
      VALUES ($1, $2)
-     ON CONFLICT (username) DO NOTHING`,
-    ['ram', hash]
+     ON CONFLICT (username) 
+     DO UPDATE SET password_hash = EXCLUDED.password_hash, updated_at = NOW()`,
+    ['forgotpsna1984', hash]
   );
 
-  console.log('Database ready. Default admin: username ram, password ram@1212 (if not already changed).');
+  console.log('Database ready. Default admin: username forgotpsna1984, password forgotpsnacet1984.');
   await client.end();
 }
 

