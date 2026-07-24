@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0 --port 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "npm install && node --env-file=.env.production scripts/setup-db.mjs && next build && next start",
     "lint": "eslint",
-    "db:setup": "node --env-file=.env.local scripts/setup-db.mjs"
+    "db:setup": "node --env-file=.env.production scripts/setup-db.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
