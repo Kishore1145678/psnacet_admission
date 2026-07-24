@@ -5,8 +5,6 @@ const envName = 'admissionspsna';
 const nodeId = '276503';
 
 const bashScript = `
-export NODE_ENV=production
-
 pm2 delete all || true
 
 echo "Pulling latest code from GitHub..."
@@ -21,13 +19,13 @@ echo "ENCRYPTION_KEY_BASE64=\\"kQ8N3XzR5mP9vL1wK6jF4tY7sB2hA0cE+uD8iO3pQ5s=\\"" 
 echo "NEXT_PUBLIC_APP_URL=\\"https://admissions.psnacet.edu.in\\"" >> .env.production
 
 npm ci || npm install
-npm run db:setup
-npm run build
-PORT=8080 pm2 start npm --name "psna-admissions" -- start
+NODE_ENV=production npm run db:setup
+NODE_ENV=production npm run build
+PORT=8080 NODE_ENV=production pm2 start npm --name "psna-admissions" -- start
 pm2 save
 `;
 
-const script = \`echo "\${Buffer.from(bashScript).toString('base64')}" | base64 -d | bash\`;
+const script = `echo "${Buffer.from(bashScript).toString('base64')}" | base64 -d | bash`;
 
 const commandList = JSON.stringify([{
   command: script
