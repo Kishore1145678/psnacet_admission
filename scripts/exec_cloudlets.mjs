@@ -5,19 +5,20 @@ const envName = 'admissionspsna';
 const nodeId = '276503';
 
 const script = `
-cd /home/jelastic/ROOT 2>/dev/null || cd /home/jelastic
 pm2 delete all || true
 
+echo "Pulling latest code from GitHub..."
+[ -d "/home/jelastic/ROOT/.git" ] && (cd /home/jelastic/ROOT && git fetch --all && git reset --hard origin/main && git pull origin main) || (cd /home/jelastic && rm -rf ROOT && git clone https://github.com/Kishore1145678/psnacet_admission.git ROOT)
+
 echo "Cleaning up old build files for a completely fresh start..."
-rm -rf node_modules .next package-lock.json
+cd /home/jelastic/ROOT
+rm -rf node_modules .next
 
-cat << 'EOF' > .env.production
-DATABASE_URL="postgresql://webadmin:MAPlqk90284@node276505-admissionspsna.in1.cloudlets.co.in:5432/postgres"
-ENCRYPTION_KEY_BASE64="kQ8N3XzR5mP9vL1wK6jF4tY7sB2hA0cE+uD8iO3pQ5s="
-NEXT_PUBLIC_APP_URL="https://admissions.psnacet.edu.in"
-EOF
+echo "DATABASE_URL=\\"postgresql://webadmin:MAPlqk90284@node276505-admissionspsna.in1.cloudlets.co.in:5432/postgres\\"" > .env.production
+echo "ENCRYPTION_KEY_BASE64=\\"kQ8N3XzR5mP9vL1wK6jF4tY7sB2hA0cE+uD8iO3pQ5s=\\"" >> .env.production
+echo "NEXT_PUBLIC_APP_URL=\\"https://admissions.psnacet.edu.in\\"" >> .env.production
 
-npm install
+npm ci || npm install
 npm run db:setup
 npm run build
 PORT=8080 pm2 start npm --name "psna-admissions" -- start
