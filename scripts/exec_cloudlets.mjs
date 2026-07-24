@@ -21,7 +21,7 @@ echo "NEXT_PUBLIC_APP_URL=\\"https://admissions.psnacet.edu.in\\"" >> .env.produ
 npm ci || npm install
 NODE_ENV=production npm run db:setup
 NODE_ENV=production npm run build
-PORT=8080 NODE_ENV=production pm2 start npm --name "psna-admissions" -- start
+PORT=8080 NODE_ENV=production pm2 start node_modules/next/dist/bin/next --name "psna-admissions" --cwd "/home/jelastic/ROOT" -- start
 pm2 save
 `;
 
