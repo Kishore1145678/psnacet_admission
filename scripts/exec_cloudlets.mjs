@@ -4,7 +4,9 @@ const session = '4176xcbcf4c2b674993706c0dff2971c6f9f4';
 const envName = 'admissionspsna';
 const nodeId = '276503';
 
-const script = `
+const bashScript = `
+export NODE_ENV=production
+
 pm2 delete all || true
 
 echo "Pulling latest code from GitHub..."
@@ -24,6 +26,8 @@ npm run build
 PORT=8080 pm2 start npm --name "psna-admissions" -- start
 pm2 save
 `;
+
+const script = \`echo "\${Buffer.from(bashScript).toString('base64')}" | base64 -d | bash\`;
 
 const commandList = JSON.stringify([{
   command: script
