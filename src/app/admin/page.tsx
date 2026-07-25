@@ -930,19 +930,24 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     (async () => {
-      const me = await fetch('/api/me', { credentials: 'include' });
-      if (me.status !== 200) {
-        window.location.href = '/';
-        return;
+      try {
+        const me = await fetch('/api/me', { credentials: 'include' });
+        if (me.status !== 200) {
+          window.location.href = '/';
+          return;
+        }
+        const body = await me.json().catch(() => ({}));
+        if (body.role !== 'admin') {
+          window.location.href = '/';
+          return;
+        }
+        setAdminUsername(body.username || '');
+        setAuthChecked(true);
+        await Promise.all([loadApplications(), loadDepartments()]);
+      } catch (e) {
+        console.error('Error during auth check:', e);
+        setAuthChecked(true);
       }
-      const body = await me.json().catch(() => ({}));
-      if (body.role !== 'admin') {
-        window.location.href = '/';
-        return;
-      }
-      setAdminUsername(body.username || '');
-      setAuthChecked(true);
-      await Promise.all([loadApplications(), loadDepartments()]);
     })();
   }, [loadApplications, loadDepartments]);
 
