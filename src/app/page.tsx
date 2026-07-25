@@ -155,6 +155,14 @@ export default function Home() {
   const router = useRouter();
   const [showLogin, setShowLogin] = useState(false);
   const [showDevelopers, setShowDevelopers] = useState(false);
+  const [activeDevPhoto, setActiveDevPhoto] = useState<{
+    name: string;
+    role: string;
+    year: string;
+    image: string;
+    gradient: string;
+    badgeBg: string;
+  } | null>(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -1055,7 +1063,7 @@ export default function Home() {
             {/* Backdrop */}
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-md"
-              onClick={() => setShowDevelopers(false)}
+              onClick={() => { setShowDevelopers(false); setActiveDevPhoto(null); }}
             />
 
             {/* Modal Box */}
@@ -1068,7 +1076,7 @@ export default function Home() {
             >
               {/* Close Button */}
               <button
-                onClick={() => setShowDevelopers(false)}
+                onClick={() => { setShowDevelopers(false); setActiveDevPhoto(null); }}
                 className="absolute top-5 right-5 w-9 h-9 rounded-full bg-[#f0eded] hover:bg-[#e5e2e1] text-[#063d30] flex items-center justify-center transition-colors cursor-pointer"
                 aria-label="Close"
               >
@@ -1097,61 +1105,146 @@ export default function Home() {
               </div>
 
               {/* Developers List */}
-              <div className="space-y-3">
-                {/* Developer 1 */}
-                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
-                  <div>
-                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
-                      Ramlakshman S. M. <span className="text-xs font-normal text-[#063d30]/70">(3rd Year)</span>
-                    </h4>
-                    <p className="text-xs font-semibold text-emerald-700 mt-0.5">
-                      Backend Developer
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                    BE
-                  </div>
-                </div>
+              <div className="space-y-3.5">
+                {[
+                  {
+                    name: 'Ramlakshman S. M.',
+                    year: '3rd Year',
+                    role: 'Backend Developer',
+                    image: '/team/ram_lakshman.jpg',
+                    gradient: 'from-cyan-500 via-blue-500 to-indigo-500',
+                    badgeBg: 'bg-emerald-100 text-emerald-800',
+                    borderTone: 'border-cyan-400 hover:shadow-cyan-500/30'
+                  },
+                  {
+                    name: 'Naresh Kumar B.',
+                    year: '3rd Year',
+                    role: 'Frontend Developer',
+                    image: '/team/naresh.jpg',
+                    gradient: 'from-amber-400 via-orange-500 to-rose-500',
+                    badgeBg: 'bg-amber-100 text-amber-800',
+                    borderTone: 'border-amber-400 hover:shadow-amber-500/30'
+                  },
+                  {
+                    name: 'Kishore S.',
+                    year: '2nd Year',
+                    role: 'Backend Developer',
+                    image: '/team/kishore.jpg',
+                    gradient: 'from-emerald-400 via-teal-500 to-cyan-500',
+                    badgeBg: 'bg-teal-100 text-teal-800',
+                    borderTone: 'border-emerald-400 hover:shadow-emerald-500/30'
+                  }
+                ].map((dev, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setActiveDevPhoto(dev)}
+                    className="group p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/40 hover:bg-white hover:shadow-lg transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      {/* Avatar preview */}
+                      <div className={`p-0.5 rounded-full bg-gradient-to-r ${dev.gradient} shadow-sm shrink-0`}>
+                        <img
+                          src={dev.image}
+                          alt={dev.name}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-white"
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-[#063d30] text-sm sm:text-base group-hover:text-[#063d30]">
+                          {dev.name} <span className="text-xs font-normal text-[#063d30]/70">({dev.year})</span>
+                        </h4>
+                        <p className="text-xs font-semibold text-emerald-700 mt-0.5">
+                          {dev.role}
+                        </p>
+                      </div>
+                    </div>
 
-                {/* Developer 2 */}
-                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
-                  <div>
-                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
-                      Naresh Kumar B. <span className="text-xs font-normal text-[#063d30]/70">(3rd Year)</span>
-                    </h4>
-                    <p className="text-xs font-semibold text-amber-700 mt-0.5">
-                      Frontend Developer
-                    </p>
+                    {/* Arrow Button with Colorful Glow */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveDevPhoto(dev);
+                      }}
+                      className={`relative p-2 rounded-xl bg-gradient-to-r ${dev.gradient} text-white shadow-md hover:scale-110 active:scale-95 transition-all flex items-center justify-center shrink-0 group/arrow`}
+                      title="View Photo"
+                    >
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transform group-hover/arrow:translate-x-0.5 transition-transform">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                      </svg>
+                    </button>
                   </div>
-                  <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center font-bold text-xs shrink-0">
-                    FE
-                  </div>
-                </div>
-
-                {/* Developer 3 */}
-                <div className="p-4 rounded-2xl bg-[#f8f6f4] border border-[#e5e2e1] flex items-center justify-between hover:border-[#063d30]/30 transition-all">
-                  <div>
-                    <h4 className="font-bold text-[#063d30] text-sm sm:text-base">
-                      Kishore S. <span className="text-xs font-normal text-[#063d30]/70">(2nd Year)</span>
-                    </h4>
-                    <p className="text-xs font-semibold text-emerald-700 mt-0.5">
-                      Backend Developer
-                    </p>
-                  </div>
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs shrink-0">
-                    BE
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Modal Footer */}
               <div className="mt-6 pt-4 border-t border-[#e5e2e1] text-center">
                 <button
-                  onClick={() => setShowDevelopers(false)}
+                  onClick={() => { setShowDevelopers(false); setActiveDevPhoto(null); }}
                   className="w-full py-2.5 rounded-xl bg-[#063d30] hover:bg-[#042d23] text-white font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer shadow-md"
                 >
                   Close
                 </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================= */}
+      {/* DEVELOPER PHOTO VIEW MODAL */}
+      {/* ========================= */}
+      <AnimatePresence>
+        {activeDevPhoto && (
+          <motion.div
+            key="dev-photo-modal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md"
+            onClick={() => setActiveDevPhoto(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0, y: 30 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 30 }}
+              transition={{ type: "spring", stiffness: 350, damping: 25 }}
+              className="relative max-w-sm w-full bg-white rounded-3xl p-5 sm:p-6 shadow-2xl overflow-hidden text-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setActiveDevPhoto(null)}
+                className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer shadow-lg"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+
+              {/* Colorful Glowing Outline Container */}
+              <div className={`p-1.5 rounded-2xl bg-gradient-to-r ${activeDevPhoto.gradient} shadow-2xl mb-4 relative`}>
+                <div className="w-full aspect-[3/4] rounded-xl overflow-hidden bg-gray-100 relative">
+                  <img
+                    src={activeDevPhoto.image}
+                    alt={activeDevPhoto.name}
+                    className="w-full h-full object-cover shadow-inner"
+                  />
+                </div>
+              </div>
+
+              {/* Developer Details */}
+              <h3 className="font-headline font-black text-[#063d30] text-xl leading-tight">
+                {activeDevPhoto.name}
+              </h3>
+              <p className="text-xs font-bold text-[#063d30]/70 mt-1">
+                {activeDevPhoto.year} • Information Technology
+              </p>
+              <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-[#063d30] text-white text-xs font-bold uppercase tracking-wider shadow-md">
+                {activeDevPhoto.role}
               </div>
             </motion.div>
           </motion.div>
