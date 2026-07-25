@@ -572,7 +572,7 @@ export default function Home() {
                     style={{ scale: imageScale }}
                     whileHover={{ scale: 0.98 }}
                     whileTap={{ scale: 0.85 }}
-                    src="/campus/slider_4.JPG"
+                    src="/campus/slider_4.jpg"
                     className="w-full h-full object-cover opacity-95 transition-transform duration-[1500ms]"
                     alt="Students and Teacher"
                   />
@@ -611,7 +611,7 @@ export default function Home() {
                 >
                   <motion.img
                     whileTap={{ scale: 0.85 }}
-                    src="/campus/slider_4.JPG"
+                    src="/campus/slider_4.jpg"
                     className="w-full h-full object-cover opacity-95"
                     alt="Students and Teacher"
                   />
@@ -783,7 +783,7 @@ export default function Home() {
                 className="absolute w-[160px] h-[120px] md:w-[220px] md:h-[165px] lg:w-[320px] lg:h-[240px] rounded-[1rem] lg:rounded-[1.5rem] overflow-visible shadow-2xl border border-white/10 bg-[#0f2a22] p-1.5 lg:p-2 pointer-events-auto group cursor-pointer origin-center transition-shadow hover:shadow-[0_40px_80px_rgba(0,0,0,0.3)]"
               >
                 <motion.div animate={{ y: [-9, 9, -9] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="w-full h-full rounded-xl overflow-hidden relative">
-                  <img src="/campus/research-1.JPG" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90" alt="Work 2" />
+                  <img src="/campus/research-1.jpg" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90" alt="Work 2" />
                 </motion.div>
               </div>
 
@@ -793,7 +793,7 @@ export default function Home() {
                 className="absolute w-[160px] h-[120px] md:w-[220px] md:h-[165px] lg:w-[320px] lg:h-[240px] rounded-[1rem] lg:rounded-[1.5rem] overflow-visible shadow-2xl border border-white/10 bg-[#143329] p-1.5 lg:p-2 pointer-events-auto group cursor-pointer origin-center transition-shadow hover:shadow-[0_40px_80px_rgba(0,0,0,0.3)]"
               >
                 <motion.div animate={{ y: [-7, 7, -7] }} transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="w-full h-full rounded-xl overflow-hidden relative">
-                  <img src="/campus/research-2.JPG" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90" alt="Work 3" />
+                  <img src="/campus/research-2.jpg" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90" alt="Work 3" />
                 </motion.div>
               </div>
 
@@ -803,7 +803,7 @@ export default function Home() {
                 className="absolute w-[160px] h-[120px] md:w-[220px] md:h-[165px] lg:w-[320px] lg:h-[240px] rounded-[1rem] lg:rounded-[1.5rem] overflow-visible shadow-[0_30px_60px_rgba(0,0,0,0.5)] border border-white/20 bg-white/10 backdrop-blur-md p-1.5 lg:p-3 pointer-events-auto group cursor-pointer origin-center transition-shadow hover:shadow-[0_50px_100px_rgba(0,0,0,0.4)]"
               >
                 <motion.div animate={{ y: [-8, 8, -8] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }} className="w-full h-full rounded-xl overflow-hidden relative bg-black">
-                  <img src="/campus/research-3.JPG" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-95" alt="Work 4" />
+                  <img src="/campus/research-3.jpg" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-95" alt="Work 4" />
 
                   {/* Floating Action Button */}
                   <div className="absolute bottom-2 right-2 md:bottom-3 md:right-3 bg-white/20 backdrop-blur-md text-white p-2 md:p-3 rounded-full md:rounded-xl shadow-lg border border-white/20 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
@@ -977,7 +977,7 @@ export default function Home() {
               <div className="absolute top-2 left-2 sm:top-6 sm:left-6 w-full h-full bg-[#d6ddd9] rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-300"></div>
               <div className="absolute top-1 left-1 sm:top-3 sm:left-3 w-full h-full bg-[#dfe5e1] rounded-[1.5rem] sm:rounded-[2rem] transition-all duration-300"></div>
               <div className="absolute top-0 left-0 w-full h-full rounded-[1.5rem] sm:rounded-[2rem] overflow-hidden shadow-2xl border border-white/20 transition-all duration-300">
-                <img src="/campus/dji_0026.JPG" className="w-full h-full object-cover brightness-[0.8] contrast-125 hover:scale-105 transition-transform duration-700" alt="Contact visual" />
+                <img src="/campus/dji_0026.jpg" className="w-full h-full object-cover brightness-[0.8] contrast-125 hover:scale-105 transition-transform duration-700" alt="Contact visual" />
               </div>
             </div>
           </div>

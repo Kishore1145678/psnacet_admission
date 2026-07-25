@@ -75,6 +75,16 @@ export async function POST(req: Request) {
     const filePath = path.join(uploadDir, filename);
 
     await fs.writeFile(filePath, buffer);
+
+    // Also write to .next/standalone/public if it exists (so standalone Next.js server serves it immediately)
+    const standaloneDir = path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads', 'hostel', category);
+    try {
+      await ensureDir(standaloneDir);
+      await fs.writeFile(path.join(standaloneDir, filename), buffer);
+    } catch (e) {
+      // Ignore if directory doesn't exist
+    }
+
     const imageUrl = `/uploads/hostel/${category}/${filename}`;
 
     // 5. Update database settings
