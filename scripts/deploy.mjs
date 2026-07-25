@@ -26,10 +26,23 @@ const NODE_ID   = '276503';
 const bashScript = `
 set -e
 
-echo "=== [1/6] Navigating to app root ==="
-cd /home/jelastic/ROOT 2>/dev/null || (cd /home/jelastic && git clone https://github.com/Kishore1145678/psnacet_admission.git ROOT && cd ROOT)
+echo "=== [1/6] Preparing app root ==="
+APP_DIR="/home/jelastic/ROOT"
+
+# If the directory exists but is NOT a git repo, remove it so we can clone fresh
+if [ -d "$APP_DIR" ] && [ ! -d "$APP_DIR/.git" ]; then
+  echo "ROOT exists but is not a git repo — removing and cloning fresh..."
+  rm -rf "$APP_DIR"
+fi
+
+# Clone if the directory doesn't exist yet
+if [ ! -d "$APP_DIR" ]; then
+  echo "Cloning repository..."
+  git clone https://github.com/Kishore1145678/psnacet_admission.git "$APP_DIR"
+fi
 
 echo "=== [2/6] Pulling latest code from GitHub ==="
+cd "$APP_DIR"
 git fetch --all
 git reset --hard origin/main
 git pull origin main
