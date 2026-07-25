@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {};
+const nextConfig: NextConfig = {
+  output: "standalone",
+};
 
 // In development, auto-allow all local IPv4 addresses for HMR/chunks.
 // This is never applied in production — zero overhead on Cloudlets.
