@@ -1,8 +1,14 @@
 import type { NextConfig } from "next";
-import { networkInterfaces } from "node:os";
 
-function getLocalDevOrigins(): string[] {
-  const ifaceMap = networkInterfaces();
+const nextConfig: NextConfig = {};
+
+// In development, auto-allow all local IPv4 addresses for HMR/chunks.
+// This is never applied in production — zero overhead on Cloudlets.
+if (process.env.NODE_ENV !== "production") {
+  // Use synchronous require-style import; next.config.ts is CommonJS-transpiled
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const os = require("os") as typeof import("os");
+  const ifaceMap = os.networkInterfaces();
   const hosts = new Set<string>(["localhost", "127.0.0.1"]);
 
   for (const entries of Object.values(ifaceMap)) {
@@ -19,13 +25,7 @@ function getLocalDevOrigins(): string[] {
     origins.add(`http://${host}:3000`);
   }
 
-  return [...origins];
+  nextConfig.allowedDevOrigins = [...origins];
 }
-
-const nextConfig: NextConfig = {
-  // Auto-allow all current local IPv4 addresses for dev assets (HMR/chunks).
-  // If network changes, restart `npm run dev` to refresh this list.
-  allowedDevOrigins: getLocalDevOrigins(),
-};
 
 export default nextConfig;
