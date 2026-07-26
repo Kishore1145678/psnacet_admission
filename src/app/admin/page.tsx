@@ -721,6 +721,28 @@ export default function AdminDashboard() {
   const [batchModal, setBatchModal] = useState<'exporting' | 'confirm_restart' | 'restarting' | null>(null);
   const [smRefreshing, setSmRefreshing] = useState(false);
   const [pollingEnabled, setPollingEnabled] = useState(true);
+  const [isExportingCertificates, setIsExportingCertificates] = useState(false);
+
+  const handleExportCertificates = async () => {
+    setIsExportingCertificates(true);
+    try {
+      const res = await fetch('/api/admin/export-certificates', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || 'Failed to export student certificates.');
+        return;
+      }
+      alert(data.message || '✅ Certificates exported successfully!');
+    } catch (e) {
+      console.error('Error exporting certificates:', e);
+      alert('Network error while exporting certificates.');
+    } finally {
+      setIsExportingCertificates(false);
+    }
+  };
 
   // Bulk Upload state
   const [bulkUploadModal, setBulkUploadModal] = useState<{
@@ -2872,9 +2894,9 @@ export default function AdminDashboard() {
                     <span className="material-symbols-outlined text-[18px]">{smRefreshing ? 'hourglass_top' : 'refresh'}</span>
                     {smRefreshing ? 'Refreshing...' : 'Refresh'}
                   </button>
-                  <button onClick={handleExportToExcel} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#2d4a35] text-white font-bold text-sm hover:bg-[#18281e] transition-colors shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">table_view</span>
-                    Export Excel
+                  <button onClick={handleExportCertificates} disabled={isExportingCertificates} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#063d30] text-white font-bold text-sm hover:bg-[#042d23] transition-colors shadow-sm disabled:opacity-60">
+                    <span className="material-symbols-outlined text-[18px]">folder_zip</span>
+                    {isExportingCertificates ? 'Exporting...' : 'Student Certificates'}
                   </button>
                   <button onClick={handleDownloadServerExcelExports} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-[#e5e2e1] text-[#18281e] font-bold text-sm hover:bg-[#f8f6f4] transition-colors shadow-sm">
                     <span className="material-symbols-outlined text-[18px]">download</span>

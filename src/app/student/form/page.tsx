@@ -370,6 +370,8 @@ export default function ApplicationForm() {
   const [hostelStay, setHostelStay] = useState('');
   const [dob, setDob] = useState('');
   const [age, setAge] = useState('');
+  const [isAgreed, setIsAgreed] = useState(false);
+  const [agreementError, setAgreementError] = useState(false);
 
   const calculateAge = (dobString: string) => {
     if (!dobString) return '';
@@ -916,6 +918,12 @@ export default function ApplicationForm() {
     });
 
   const submitForm = async (attempt = 0) => {
+    if (!isAgreed) {
+      setAgreementError(true);
+      alert('Please tick "I agree" to confirm the admission fee payment terms before submitting.\n\n(சேர்க்கையின் போது, குறிப்பிட்ட காலக்கெடுவுக்குள் கல்லூரி கட்டணத்தைச் செலுத்திய பின்னரே உங்கள் சேர்க்கை உறுதி செய்யப்படும்.)');
+      return;
+    }
+
     try {
       setIsSaving(true);
 
@@ -1263,7 +1271,12 @@ export default function ApplicationForm() {
                 <div className={`space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500  ${currentStep === 4 ? 'block' : 'hidden'}`}>
                   <h3 className="text-xl font-bold text-gray-900 border-b pb-2 mb-6">Admission Details</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input name="admission_date" label="Date of Admission" type="date" required />
+                    <div>
+                      <Input name="admission_date" label="Date of Admission" type="date" required />
+                      <p className="text-xs font-semibold text-red-600 mt-1.5">
+                        Please provide the date when you will pay the college fees.
+                      </p>
+                    </div>
                     <Input name="admission_year" label="Admission for the Year" placeholder="e.g. 2026" required />
                     <Input name="admission_batch" label="Batch" placeholder="20__ - 20__" value={batchString} onChange={handleBatchChange} maxLength={9} required />
                     <div className="flex flex-col gap-2">
@@ -1646,10 +1659,41 @@ export default function ApplicationForm() {
                     </div>
                   </div>
                   <h3 className="text-3xl font-extrabold text-[#111827] tracking-tight" style={{ fontFamily: '"Manrope", sans-serif' }}>Ready for Final Submission?</h3>
-                  <p className="text-[#4b5563] max-w-xl mx-auto text-[15px] leading-relaxed pt-2 pb-6">
+                  <p className="text-[#4b5563] max-w-xl mx-auto text-[15px] leading-relaxed pt-2 pb-2">
                     By clicking Submit Application, you declare that all information provided is accurate and true.
                     Subsequent modifications will require administrative access.
                   </p>
+
+                  {/* Blinking Red Fee Payment Confirmation Disclaimer */}
+                  <div className="relative max-w-2xl mx-auto rounded-2xl bg-red-50 border-2 border-red-500 p-5 sm:p-6 shadow-xl animate-pulse text-center overflow-hidden my-4">
+                    <p className="text-sm sm:text-base font-extrabold text-red-700 leading-relaxed">
+                      Your admission will be confirmed only after paying the college fees within the stipulated timing during the admission.
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-red-800 leading-relaxed mt-1.5">
+                      (சேர்க்கையின் போது, குறிப்பிட்ட காலக்கெடுவுக்குள் கல்லூரி கட்டணத்தைச் செலுத்திய பின்னரே உங்கள் சேர்க்கை உறுதி செய்யப்படும்.)
+                    </p>
+                  </div>
+
+                  {/* I Agree Checkbox */}
+                  <div className="flex flex-col items-center justify-center gap-2 my-4">
+                    <label className="flex items-center gap-3 cursor-pointer text-base font-extrabold text-gray-900 select-none bg-red-50/80 hover:bg-red-100 px-5 py-3 rounded-2xl border-2 border-red-200 transition-colors shadow-sm">
+                      <input
+                        type="checkbox"
+                        checked={isAgreed}
+                        onChange={(e) => {
+                          setIsAgreed(e.target.checked);
+                          if (e.target.checked) setAgreementError(false);
+                        }}
+                        className="w-5 h-5 text-red-600 focus:ring-red-500 rounded border-gray-300 cursor-pointer"
+                      />
+                      <span className="text-gray-900">I agree</span>
+                    </label>
+                    {agreementError && (
+                      <p className="text-xs font-bold text-red-600 animate-bounce">
+                        ⚠️ Please tick &quot;I agree&quot; to confirm fee payment rules before submitting.
+                      </p>
+                    )}
+                  </div>
 
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <button type="button" onClick={() => setIsPreviewMode(!isPreviewMode)} className={`w-full sm:w-auto px-6 py-3.5 font-bold text-[15px] border border-gray-200 rounded-[10px] transition-all ${isPreviewMode ? 'bg-indigo-50 text-indigo-700 border-indigo-200 shadow-inner' : 'bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'}`}>
