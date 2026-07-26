@@ -721,54 +721,13 @@ export default function AdminDashboard() {
   const [batchModal, setBatchModal] = useState<'exporting' | 'confirm_restart' | 'restarting' | null>(null);
   const [smRefreshing, setSmRefreshing] = useState(false);
   const [pollingEnabled, setPollingEnabled] = useState(true);
-  const [isExportingCertificates, setIsExportingCertificates] = useState(false);
-
-  const handleExportCertificates = async () => {
-    setIsExportingCertificates(true);
-    try {
-      const res = await fetch('/api/admin/export-certificates', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert(data.error || 'Failed to export student certificates.');
-        return;
-      }
-      alert(data.message || '✅ Certificates exported successfully!');
-    } catch (e) {
-      console.error('Error exporting certificates:', e);
-      alert('Network error while exporting certificates.');
-    } finally {
-      setIsExportingCertificates(false);
-    }
-  };
-
-  const handleDownloadStudentDocumentsToFolder = async (app: Application) => {
-    try {
-      const res = await fetch('/api/admin/export-certificates', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ studentId: app.id, applicationNumber: app.id }),
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (res.status === 409 || data.alreadyExists) {
-        alert('Already exists in your folder');
-        return;
-      }
-
-      if (!res.ok) {
-        alert(data.error || 'Failed to save student documents.');
-        return;
-      }
-
-      alert(data.message || `✅ Documents for ${app.name} saved successfully!`);
-    } catch (e) {
-      console.error('Error saving student documents:', e);
-      alert('Network error while saving student documents.');
-    }
+  const handleExportCertificates = () => {
+    const link = document.createElement('a');
+    link.href = '/api/admin/export-certificates';
+    link.download = 'all_student_certificates.zip';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Bulk Upload state
@@ -2921,9 +2880,9 @@ export default function AdminDashboard() {
                     <span className="material-symbols-outlined text-[18px]">{smRefreshing ? 'hourglass_top' : 'refresh'}</span>
                     {smRefreshing ? 'Refreshing...' : 'Refresh'}
                   </button>
-                  <button onClick={handleExportCertificates} disabled={isExportingCertificates} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#063d30] text-white font-bold text-sm hover:bg-[#042d23] transition-colors shadow-sm disabled:opacity-60">
+                  <button onClick={handleExportCertificates} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#063d30] text-white font-bold text-sm hover:bg-[#042d23] transition-colors shadow-sm">
                     <span className="material-symbols-outlined text-[18px]">folder_zip</span>
-                    {isExportingCertificates ? 'Exporting...' : 'Student Certificates'}
+                    Student Certificates
                   </button>
                   <button onClick={handleDownloadServerExcelExports} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-[#e5e2e1] text-[#18281e] font-bold text-sm hover:bg-[#f8f6f4] transition-colors shadow-sm">
                     <span className="material-symbols-outlined text-[18px]">download</span>
@@ -3015,7 +2974,14 @@ export default function AdminDashboard() {
                               <button onClick={() => handleExportClick('PDF', app)} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-rose-50 text-red-500 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-red-200" title="Download PDF">
                                 <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                               </button>
-                              <button onClick={() => handleDownloadStudentDocumentsToFolder(app)} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-blue-50 text-blue-500 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-blue-200" title="Save All Documents to Export Folder">
+                              <button onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = `/api/admin/documents/bulk-download?studentId=${app.id}`;
+                                link.download = `student_${app.id}_documents.zip`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-blue-50 text-blue-500 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-blue-200" title="Download All Documents">
                                 <span className="material-symbols-outlined text-[16px]">folder_zip</span>
                               </button>
                               <button onClick={() => handleToggleLock(app.id, !!app.isLocked)} className={`relative flex items-center justify-center w-10 h-10 rounded-[14px] shadow-md transition-all duration-500 overflow-hidden group/lock ${app.isLocked ? 'bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-[0_8px_20px_rgba(225,29,72,0.35)] border border-red-400' : 'bg-white hover:bg-emerald-50 text-[#737873] hover:text-emerald-600 border border-[#e5e2e1] hover:border-emerald-200'}`} title={app.isLocked ? "Unlock Record" : "Lock Record"}>
