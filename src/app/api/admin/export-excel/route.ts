@@ -11,8 +11,17 @@ export const dynamic = 'force-dynamic';
 function buildStudentExportRow(dbStudent: any, formData: Record<string, any>) {
   const val = (...keys: string[]) => {
     for (const key of keys) {
-      const v = formData?.[key];
-      if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+      // 1. Direct form data check
+      const v1 = formData?.[key];
+      if (v1 !== undefined && v1 !== null && String(v1).trim() !== '' && String(v1).trim() !== '-') return String(v1).trim();
+
+      // 2. Prefill object check
+      const v2 = formData?.prefill?.[key];
+      if (v2 !== undefined && v2 !== null && String(v2).trim() !== '' && String(v2).trim() !== '-') return String(v2).trim();
+
+      // 3. Database record check
+      const v3 = dbStudent?.[key];
+      if (v3 !== undefined && v3 !== null && String(v3).trim() !== '' && String(v3).trim() !== '-') return String(v3).trim();
     }
     return '-';
   };
@@ -28,65 +37,61 @@ function buildStudentExportRow(dbStudent: any, formData: Record<string, any>) {
     }
   };
 
-  const dob = dbStudent?.date_of_birth ? formatDate(dbStudent.date_of_birth) : val('student_dob', 'date_of_birth', 'dob');
-  const fatherMobile = dbStudent?.father_mobile_number || val('father_mobile', 'father_mobile_number');
-  const studentMobile = dbStudent?.mobile_number || val('student_mobile', 'mobile_number', 'mobile');
-  const fatherName = dbStudent?.father_name || val('father_name');
-  const motherName = dbStudent?.mother_name || val('mother_name');
-  const bloodGroup = dbStudent?.blood_group || val('blood_group', 'student_blood_group');
+  const dobRaw = dbStudent?.date_of_birth || formData?.student_dob || formData?.date_of_birth || formData?.dob || formData?.prefill?.date_of_birth;
+  const dobFormatted = formatDate(dobRaw);
 
   const exportRow: Record<string, any> = {
     // ===== BASIC INFORMATION =====
-    'Application Number': dbStudent?.application_number || val('application_number') || '-',
-    'Institutional ID': dbStudent?.institutional_id || val('institutional_id') || '-',
-    'Full Name': dbStudent?.full_name || val('student_name', 'full_name') || '-',
-    'Academic Branch': dbStudent?.academic_branch || val('student_branch', 'academic_branch') || '-',
-    'Status': dbStudent?.status || val('status') || '-',
-    'Completion Status': dbStudent?.completion_status || val('completion_status') || '-',
+    'Application Number': val('application_number'),
+    'Institutional ID': val('institutional_id'),
+    'Full Name': val('full_name', 'student_name', 'name'),
+    'Academic Branch': val('academic_branch', 'student_branch', 'department'),
+    'Status': val('status'),
+    'Completion Status': val('completion_status'),
 
     // ===== PERSONAL DETAILS =====
-    'Date of Birth': dob,
+    'Date of Birth': dobFormatted,
     'Age': val('student_age', 'age'),
     'Gender': val('student_gender', 'gender'),
-    'Blood Group': bloodGroup,
+    'Blood Group': val('blood_group', 'student_blood_group'),
     'Nationality': val('nationality'),
     'Religion': val('religion'),
     'Mother Tongue': val('mother_tongue'),
     'Community': val('community'),
     'Caste': val('caste'),
-    'Student Mobile': studentMobile,
+    'Student Mobile': val('mobile_number', 'student_mobile', 'mobile'),
     'Student Email': val('student_email', 'email'),
     'Student Aadhaar': val('student_aadhaar', 'aadhar_number', 'aadhar'),
     'EMIS Number': val('emis_number', 'emis'),
     'Specially Abled': val('student_specially_abled', 'specially_abled'),
     'Studied in TN': val('tn_study', 'studied_tn'),
-    'Government School': val('govt_school'),
+    'Government School Student': val('govt_school', 'studied_in_govt_school'),
 
     // ===== FAMILY DETAILS =====
-    'Father Name': fatherName,
+    'Father Name': val('father_name'),
     'Father Occupation': val('father_occupation'),
     'Father Occupation Type': val('father_occupation_type'),
-    'Father Mobile': fatherMobile,
-    'Father Income': val('father_income'),
-    'Mother Name': motherName,
+    'Father Mobile': val('father_mobile_number', 'father_mobile'),
+    'Father Annual Income': val('father_income'),
+    'Mother Name': val('mother_name'),
     'Mother Occupation': val('mother_occupation'),
     'Mother Occupation Type': val('mother_occupation_type'),
     'Mother Mobile': val('mother_mobile'),
-    'Mother Income': val('mother_income'),
+    'Mother Annual Income': val('mother_income'),
     'Guardian Name': val('guardian_name'),
     'Guardian Mobile': val('guardian_mobile'),
 
     // ===== ADDRESS DETAILS =====
     'Permanent Address': val('permanent_address'),
-    'Permanent City/District': val('permanent_city', 'district', 'city'),
+    'Permanent City / District': val('permanent_city', 'district', 'city'),
     'Permanent State': val('permanent_state', 'state'),
     'Permanent Pincode': val('permanent_pincode', 'pincode'),
     'Communication Address': val('communication_address'),
 
     // ===== ADMISSION & SCHOOL DETAILS =====
-    'Admission Category': val('admission_category', 'gq_mq_type'),
+    'Admission Category (GQ/MQ)': val('admission_category', 'gq_mq_type'),
     'GQ/MQ Allotment Number': val('admission_allotment_number', 'gq_mq_number'),
-    'Admission Year': val('admission_year'),
+    'Admission Year': val('admission_year', 'admission_batch'),
     'Board Studied': val('board_studied', 'hsc_board'),
     'School Location': val('school_location'),
     'Civic Status': val('civic_status'),
@@ -124,6 +129,8 @@ function buildStudentExportRow(dbStudent: any, formData: Record<string, any>) {
     if (
       !k.startsWith('_') &&
       !k.endsWith('_base64') &&
+      k !== 'meta' &&
+      k !== 'prefill' &&
       typeof v !== 'object' &&
       !(k in exportRow)
     ) {
@@ -154,7 +161,7 @@ export async function GET(req: Request) {
       LEFT JOIN LATERAL (
         SELECT encrypted_payload
         FROM student_application_forms
-        WHERE student_id = s.id
+        WHERE student_id = s.id OR student_id::text = s.application_number
         ORDER BY updated_at DESC, created_at DESC
         LIMIT 1
       ) f ON true
@@ -261,11 +268,11 @@ export async function POST(req: Request) {
           LEFT JOIN LATERAL (
             SELECT encrypted_payload, created_at
             FROM student_application_forms
-            WHERE student_id = s.id
+            WHERE student_id = s.id OR student_id::text = s.application_number
             ORDER BY updated_at DESC, created_at DESC
             LIMIT 1
           ) f ON true
-          WHERE s.application_number = ANY(ARRAY[${placeholders}]::text[])`,
+          WHERE s.application_number = ANY(ARRAY[${placeholders}]::text[]) OR s.id::text = ANY(ARRAY[${placeholders}]::text[])`,
           studentIdentifiers
         );
         dbStudents = rows;
@@ -277,6 +284,7 @@ export async function POST(req: Request) {
     const dbStudentMap = new Map();
     dbStudents.forEach((s: any) => {
       dbStudentMap.set(s.application_number, s);
+      dbStudentMap.set(s.id, s);
     });
 
     const deptMap = new Map<string, any[]>();
