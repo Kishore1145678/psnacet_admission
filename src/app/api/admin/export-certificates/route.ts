@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdminSession, AuthError } from '@/lib/session';
 import { query } from '@/lib/db';
+import { decryptJson, EncryptedPayload } from '@/lib/crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { tmpdir } from 'os';
@@ -27,14 +28,32 @@ async function findSourceFile(fileKey: string): Promise<string | null> {
     '/home/jelastic/ROOT/.next/standalone/public/uploads',
   ];
 
+  const cleanKey = path.basename(fileKey);
+
   for (const dir of candidateDirs) {
-    const filePath = path.join(dir, fileKey);
+    // 1. Direct path
+    const p1 = path.join(dir, fileKey);
     try {
-      await fs.access(filePath);
-      return filePath;
-    } catch {
-      // check next candidate dir
-    }
+      await fs.access(p1);
+      return p1;
+    } catch {}
+
+    // 2. Clean basename
+    const p2 = path.join(dir, cleanKey);
+    try {
+      await fs.access(p2);
+      return p2;
+    } catch {}
+
+    // 3. Directory listing match
+    try {
+      const files = await fs.readdir(dir);
+      for (const f of files) {
+        if (f === fileKey || f === cleanKey || f.endsWith(cleanKey) || (cleanKey.length > 5 && f.includes(cleanKey))) {
+          return path.join(dir, f);
+        }
+      }
+    } catch {}
   }
 
   return null;
@@ -47,25 +66,28 @@ async function handleCertificatesExport() {
   try {
     await requireAdminSession();
 
-    // 1. Fetch all students from database
+    // 1. Fetch all students with optional form data
     const { rows: allStudents } = await query<{
       id: string;
       application_number: string;
+      institutional_id: string;
       full_name: string;
       academic_branch: string;
       completion_status: string;
       status: string;
+      encrypted_payload?: any;
     }>(
-      `SELECT id, application_number, full_name, academic_branch, completion_status, status 
-       FROM students 
-       ORDER BY application_number ASC`
+      `SELECT s.id, s.application_number, s.institutional_id, s.full_name, s.academic_branch, 
+              s.completion_status, s.status, f.encrypted_payload
+       FROM students s
+       LEFT JOIN student_application_forms f ON f.student_id = s.id AND f.status = 'submitted'
+       ORDER BY s.application_number ASC`
     );
 
     tempDir = path.join(tmpdir(), `all_certificates_${Date.now()}`);
     await ensureDir(tempDir);
 
     if (allStudents.length === 0) {
-      // Create empty notice text file if no students in DB yet
       const noticePath = path.join(tempDir, 'NO_STUDENTS_FOUND.txt');
       await fs.writeFile(
         noticePath,
@@ -80,7 +102,39 @@ async function handleCertificatesExport() {
         const studentFolder = path.join(tempDir, folderName);
         await ensureDir(studentFolder);
 
-        // Fetch all documents matching student UUID or application_number
+        // Decrypt form payload if available
+        let formData: Record<string, any> = {};
+        if (student.encrypted_payload) {
+          try {
+            if (student.encrypted_payload?.v === 1 && student.encrypted_payload?.alg) {
+              formData = decryptJson(student.encrypted_payload as EncryptedPayload);
+            } else {
+              formData =
+                typeof student.encrypted_payload === 'string'
+                  ? JSON.parse(student.encrypted_payload)
+                  : student.encrypted_payload;
+            }
+          } catch {
+            formData = {};
+          }
+        }
+
+        // 1. Extract and save student photo if present in payload
+        const photoBase64 = formData?.student_photo_base64;
+        if (photoBase64 && typeof photoBase64 === 'string') {
+          const match = photoBase64.match(/^data:image\/([a-zA-Z0-9]+);base64,(.+)$/);
+          if (match) {
+            const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
+            const imageBuffer = Buffer.from(match[2], 'base64');
+            try {
+              await fs.writeFile(path.join(studentFolder, `Student_Photo.${ext}`), imageBuffer);
+            } catch (err) {
+              console.error('Failed to save student photo:', err);
+            }
+          }
+        }
+
+        // 2. Fetch all document records from student_documents table
         const { rows: docs } = await query<{
           id: number;
           document_category: string;
@@ -90,36 +144,17 @@ async function handleCertificatesExport() {
         }>(
           `SELECT id, document_category, file_name, file_key, uploaded_at 
            FROM student_documents 
-           WHERE student_id::text = $1::text OR student_id::text = $2::text 
+           WHERE student_id::text = $1::text 
+              OR student_id::text = $2::text 
+              OR file_key LIKE $1::text || '%' 
+              OR file_key LIKE $2::text || '%'
            ORDER BY document_category ASC, id ASC`,
           [student.id, student.application_number]
         );
 
-        // Create student summary info file inside their folder
-        const summaryText = [
-          '==================================================',
-          'PSNA COLLEGE OF ENGINEERING & TECHNOLOGY',
-          'STUDENT CERTIFICATE & ADMISSION RECORD',
-          '==================================================',
-          `Student Name       : ${student.full_name}`,
-          `Application Number : ${student.application_number}`,
-          `Academic Branch    : ${student.academic_branch || 'Not Specified'}`,
-          `Form Status        : ${student.completion_status || 'Pending'}`,
-          `Uploaded Documents : ${docs.length} file(s)`,
-          '==================================================',
-          '',
-          'DOCUMENT LIST:',
-          ...(docs.length > 0
-            ? docs.map(
-                (d, idx) =>
-                  `${idx + 1}. [${d.document_category}] ${d.file_name} (Uploaded: ${new Date(d.uploaded_at).toLocaleString()})`
-              )
-            : ['No uploaded documents found for this student.']),
-        ].join('\n');
+        let copiedDocCount = 0;
 
-        await fs.writeFile(path.join(studentFolder, 'student_summary.txt'), summaryText);
-
-        // Copy all uploaded document files into student folder
+        // Copy certificate files from upload directories
         for (const doc of docs) {
           const sourcePath = await findSourceFile(doc.file_key);
           if (sourcePath) {
@@ -129,15 +164,42 @@ async function handleCertificatesExport() {
             const destPath = path.join(studentFolder, destFilename);
             try {
               await fs.copyFile(sourcePath, destPath);
+              copiedDocCount++;
             } catch (err) {
               console.error(`Failed to copy file for ${student.full_name}:`, err);
             }
           }
         }
+
+        // 3. Generate comprehensive student summary details file
+        const summaryLines = [
+          '==================================================',
+          'PSNA COLLEGE OF ENGINEERING & TECHNOLOGY',
+          'STUDENT CERTIFICATE & ADMISSION RECORD',
+          '==================================================',
+          `Student Name       : ${student.full_name}`,
+          `Application Number : ${student.application_number}`,
+          `Institutional ID   : ${student.institutional_id || 'Pending'}`,
+          `Academic Branch    : ${student.academic_branch || 'Not Specified'}`,
+          `Form Status        : ${student.completion_status || 'Pending'}`,
+          `Photo Included     : ${photoBase64 ? 'Yes (Student_Photo.jpg)' : 'No'}`,
+          `Certificates Found : ${copiedDocCount} of ${docs.length} file(s)`,
+          '==================================================',
+          '',
+          'ATTACHED CERTIFICATES:',
+          ...(docs.length > 0
+            ? docs.map(
+                (d, idx) =>
+                  `${idx + 1}. [${d.document_category}] ${d.file_name} (FileKey: ${d.file_key})`
+              )
+            : ['No document records registered for this student.']),
+        ];
+
+        await fs.writeFile(path.join(studentFolder, 'student_summary.txt'), summaryLines.join('\n'));
       }
     }
 
-    // 2. Also copy to admin_settings excel_export_path if set
+    // Also copy to admin_settings excel_export_path if configured
     try {
       const { rows: settingsRows } = await query<{ value: string }>(
         `SELECT value FROM admin_settings WHERE key = 'excel_export_path' LIMIT 1`
@@ -152,7 +214,7 @@ async function handleCertificatesExport() {
       console.warn('Server export path copy warning:', e);
     }
 
-    // 3. Compress folder into ZIP file for direct browser download
+    // Compress folder into ZIP file for direct browser download
     tempZipPath = path.join(tmpdir(), `all_student_certificates_${Date.now()}.zip`);
     const zipCommand =
       process.platform === 'win32'
@@ -179,7 +241,6 @@ async function handleCertificatesExport() {
       { status: 500 }
     );
   } finally {
-    // Cleanup temporary files
     try {
       if (tempDir) await fs.rm(tempDir, { recursive: true, force: true });
       if (tempZipPath) await fs.rm(tempZipPath, { force: true });
