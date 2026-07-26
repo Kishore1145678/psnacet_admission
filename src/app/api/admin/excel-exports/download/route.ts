@@ -71,13 +71,13 @@ export async function GET() {
       `SELECT 
         s.*,
         f.encrypted_payload,
-        f.created_at as form_created_at
+        f.updated_at as form_updated_at
       FROM students s
       LEFT JOIN LATERAL (
-        SELECT encrypted_payload, created_at
+        SELECT encrypted_payload, updated_at
         FROM student_application_forms
         WHERE student_id = s.id
-        ORDER BY updated_at DESC, created_at DESC
+        ORDER BY updated_at DESC
         LIMIT 1
       ) f ON true
       ORDER BY s.created_at DESC`

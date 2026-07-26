@@ -1281,16 +1281,16 @@ export default function AdminDashboard() {
   };
 
   const handleExportToExcel = async () => {
-    const completeApps = applications.filter(a => a.completionStatus === 'Complete');
-    if (completeApps.length === 0) {
+    const appsToExport = applications.length > 0 ? applications : [];
+    if (appsToExport.length === 0) {
       alert("No student details available to download.");
       return;
     }
     setBatchModal('exporting');
     setTimeout(async () => {
-      await exportToExcelCore();
+      await smartExportStudents(appsToExport, false);
       setBatchModal(null);
-    }, 2000);
+    }, 1000);
   };
 
   const handleRefreshStudentManagement = async () => {
@@ -1313,22 +1313,28 @@ export default function AdminDashboard() {
         credentials: 'include',
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        alert(err.error || 'No student details available to download.');
+        console.warn('Server download route failed or empty, falling back to smart export...');
+        await handleExportToExcel();
         return;
       }
       const blob = await res.blob();
+      const contentDisposition = res.headers.get('Content-Disposition');
+      let filename = `Excel_Exports_${new Date().toISOString().slice(0, 10)}.zip`;
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^";]+)"?/);
+        if (match?.[1]) filename = match[1];
+      }
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Excel_Exports_${new Date().toISOString().slice(0, 10)}.zip`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
     } catch (e) {
-      console.error(e);
-      alert('No student details available to download.');
+      console.error('Download server excel error:', e);
+      await handleExportToExcel();
     }
   };
 
