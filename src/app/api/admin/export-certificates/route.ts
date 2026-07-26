@@ -52,7 +52,7 @@ export async function POST(req: Request) {
       }>(
         `SELECT id, application_number, full_name 
          FROM students 
-         WHERE id = $1 OR application_number = $1 LIMIT 1`,
+         WHERE id::text = $1 OR application_number = $1 LIMIT 1`,
         [targetId]
       );
 
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
         file_name: string;
         file_key: string;
       }>(
-        `SELECT document_category, file_name, file_key FROM student_documents WHERE student_id = $1`,
+        `SELECT document_category, file_name, file_key FROM student_documents WHERE student_id::text = $1::text`,
         [student.id]
       );
 
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
         file_name: string;
         file_key: string;
       }>(
-        `SELECT document_category, file_name, file_key FROM student_documents WHERE student_id = $1`,
+        `SELECT document_category, file_name, file_key FROM student_documents WHERE student_id::text = $1::text`,
         [student.id]
       );
 
