@@ -2976,13 +2976,29 @@ export default function AdminDashboard() {
                               <button onClick={() => handleExportClick('PDF', app)} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-rose-50 text-red-500 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-red-200" title="Download PDF">
                                 <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
                               </button>
-                              <button onClick={() => {
-                                const link = document.createElement('a');
-                                link.href = `/api/admin/export-excel?studentId=${app.id}`;
-                                link.download = `student_${app.id}_details.xlsx`;
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
+                              <button onClick={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/export-excel?studentId=${encodeURIComponent(app.id)}`, {
+                                    method: 'GET',
+                                    credentials: 'include',
+                                  });
+                                  if (!res.ok) {
+                                    const errData = await res.json().catch(() => ({}));
+                                    throw new Error(errData.error || `HTTP ${res.status}`);
+                                  }
+                                  const blob = await res.blob();
+                                  const url = window.URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `student_${app.id}_details.xlsx`;
+                                  document.body.appendChild(a);
+                                  a.click();
+                                  a.remove();
+                                  window.URL.revokeObjectURL(url);
+                                } catch (e: any) {
+                                  console.error('Single student excel export failed:', e);
+                                  alert('Failed to download Excel file: ' + (e.message || 'Error'));
+                                }
                               }} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-emerald-50 text-emerald-600 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-emerald-200" title="Download Excel Sheet">
                                 <span className="material-symbols-outlined text-[16px]">table_chart</span>
                               </button>

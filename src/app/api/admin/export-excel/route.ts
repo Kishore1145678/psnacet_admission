@@ -204,13 +204,15 @@ export async function GET(req: Request) {
     XLSX.utils.book_append_sheet(wb, ws, 'Student Details');
 
     const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const uint8Array = new Uint8Array(buffer);
     const filename = `student_${dbStudent.application_number}_details.xlsx`;
 
-    return new Response(buffer, {
+    return new Response(uint8Array, {
       status: 200,
       headers: {
         'Content-Disposition': `attachment; filename="${filename}"`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Length': uint8Array.length.toString(),
       },
     });
   } catch (error) {
@@ -365,11 +367,13 @@ export async function POST(req: Request) {
       }
     } else {
       const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
-      return new Response(buffer, {
+      const uint8Array = new Uint8Array(buffer);
+      return new Response(uint8Array, {
         status: 200,
         headers: {
           'Content-Disposition': `attachment; filename="${filename}"`,
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'Content-Length': uint8Array.length.toString(),
         },
       });
     }
