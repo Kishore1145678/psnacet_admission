@@ -2880,10 +2880,6 @@ export default function AdminDashboard() {
                     <span className="material-symbols-outlined text-[18px]">{smRefreshing ? 'hourglass_top' : 'refresh'}</span>
                     {smRefreshing ? 'Refreshing...' : 'Refresh'}
                   </button>
-                  <button onClick={handleExportCertificates} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-[#063d30] text-white font-bold text-sm hover:bg-[#042d23] transition-colors shadow-sm">
-                    <span className="material-symbols-outlined text-[18px]">folder_zip</span>
-                    Student Certificates
-                  </button>
                   <button onClick={handleDownloadServerExcelExports} className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-white border border-[#e5e2e1] text-[#18281e] font-bold text-sm hover:bg-[#f8f6f4] transition-colors shadow-sm">
                     <span className="material-symbols-outlined text-[18px]">download</span>
                     Excel Download

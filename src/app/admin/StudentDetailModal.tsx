@@ -553,15 +553,15 @@ export function StudentDetailModal({ app, onClose, onSave, onPromoteDraft }: { a
                 </h3>
                 <p className="text-xs font-semibold text-[#737873] mt-1">Student uploaded files for each required document category.</p>
               </div>
-              {uploadedDocuments.length > 0 && (
-                <button
-                  onClick={handleBulkDownload}
-                  className="px-4 py-2 bg-gradient-to-r from-[#3b8a53] to-[#2d6640] hover:from-[#2d6640] hover:to-[#205032] text-white text-xs font-bold rounded-lg transition-all flex items-center gap-2 shadow-sm hover:shadow-md"
-                >
-                  <span className="material-symbols-outlined text-[16px]">download_folder</span>
-                  Download All
-                </button>
-              )}
+              <button
+                onClick={handleBulkDownload}
+                className="px-5 py-2.5 bg-[#1d5c38] hover:bg-[#154629] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
+                title="Download all certificates and photo for this student"
+              >
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span className="material-symbols-outlined text-[18px]">folder</span>
+                Download All
+              </button>
             </div>
 
             {docsLoading ? (
