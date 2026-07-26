@@ -2978,6 +2978,16 @@ export default function AdminDashboard() {
                               </button>
                               <button onClick={() => {
                                 const link = document.createElement('a');
+                                link.href = `/api/admin/export-excel?studentId=${app.id}`;
+                                link.download = `student_${app.id}_details.xlsx`;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                              }} className="relative flex items-center justify-center w-9 h-9 rounded-full bg-white hover:bg-emerald-50 text-emerald-600 shadow-sm transition-all duration-300 border border-[#e5e2e1] hover:border-emerald-200" title="Download Excel Sheet">
+                                <span className="material-symbols-outlined text-[16px]">table_chart</span>
+                              </button>
+                              <button onClick={() => {
+                                const link = document.createElement('a');
                                 link.href = `/api/admin/documents/bulk-download?studentId=${app.id}`;
                                 link.download = `student_${app.id}_documents.zip`;
                                 document.body.appendChild(link);

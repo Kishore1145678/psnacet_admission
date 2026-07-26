@@ -424,3 +424,97 @@ export async function POST(req: Request) {
     }, { status: 500 });
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    await requireAdminSession();
+    const { searchParams } = new URL(req.url);
+    const studentIdParam = searchParams.get('studentId');
+
+    if (!studentIdParam) {
+      return NextResponse.json({ error: 'studentId required' }, { status: 400 });
+    }
+
+    const { rows } = await query(
+      `SELECT s.*, f.encrypted_payload
+       FROM students s
+       LEFT JOIN student_application_forms f ON f.student_id = s.id AND f.status = 'submitted'
+       WHERE s.id::text = $1::text OR s.application_number = $1
+       LIMIT 1`,
+      [studentIdParam]
+    );
+
+    const dbStudent = rows[0] as any;
+    if (!dbStudent) {
+      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+    }
+
+    let formData: Record<string, any> = {};
+    if (dbStudent.encrypted_payload) {
+      try {
+        formData = decryptJson(dbStudent.encrypted_payload as EncryptedPayload);
+      } catch {
+        formData = typeof dbStudent.encrypted_payload === 'string' ? JSON.parse(dbStudent.encrypted_payload) : dbStudent.encrypted_payload;
+      }
+    }
+    if (dbStudent.additional_info && typeof dbStudent.additional_info === 'object') {
+      formData = { ...formData, ...dbStudent.additional_info };
+    }
+
+    const val = (...keys: string[]) => {
+      for (const key of keys) {
+        const v = formData?.[key];
+        if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+      }
+      return '-';
+    };
+
+    const exportRow: any = {
+      'Application Number': dbStudent.application_number || '-',
+      'Full Name': dbStudent.full_name || '-',
+      'Department': dbStudent.academic_branch || '-',
+      'Status': dbStudent.status || '-',
+      'Completion Status': dbStudent.completion_status || '-',
+      'Date of Birth': dbStudent.date_of_birth ? new Date(dbStudent.date_of_birth).toLocaleDateString() : '-',
+      'Age': val('student_age'),
+      'Nationality': val('nationality'),
+      'Religion': val('religion'),
+      'Mother Tongue': val('mother_tongue'),
+      'Student Mobile': dbStudent.mobile_number || val('student_mobile'),
+      'Father Name': dbStudent.father_name || val('father_name'),
+      'Father Occupation': val('father_occupation'),
+      'Father Mobile': dbStudent.father_mobile_number || val('father_mobile'),
+      'Mother Name': dbStudent.mother_name || val('mother_name'),
+      'Mother Mobile': val('mother_mobile'),
+      'Permanent Address': val('permanent_address'),
+      'District': val('permanent_city', 'district'),
+      'State': val('permanent_state', 'state'),
+      'Community': val('community'),
+      'Student Email': val('student_email'),
+      'Student Aadhaar': val('student_aadhaar', 'aadhar_number'),
+      'EMIS Number': val('emis_number'),
+      'Class 12 Total': val('marks_12_total'),
+      'Class 12 Percentage': val('marks_12_percentage'),
+      'Cutoff Mark': val('mark_cutoff'),
+      'Date Submitted': dbStudent.form_submitted_at ? new Date(dbStudent.form_submitted_at).toLocaleString() : '-',
+    };
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet([exportRow]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Student Details');
+
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const filename = `student_${dbStudent.application_number}_details.xlsx`;
+
+    return new Response(buffer, {
+      status: 200,
+      headers: {
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      },
+    });
+  } catch (error) {
+    console.error('Single student excel export error:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}

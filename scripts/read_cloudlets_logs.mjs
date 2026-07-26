@@ -5,8 +5,10 @@ const envName = 'admissionspsna';
 const nodeId = '277846';
 
 const bashScript = `
-echo "=== CURL LOCALHOST 8080 ==="
-curl -I http://127.0.0.1:8080/admin
+echo "=== CURL ROOT PAGE ==="
+curl -i http://127.0.0.1:8080/
+echo "=== PM2 ERROR LOG ==="
+tail -n 25 /home/jelastic/.pm2/logs/psna-admissions-error.log
 `;
 
 const script = `echo "${Buffer.from(bashScript).toString('base64')}" | base64 -d | bash`;
