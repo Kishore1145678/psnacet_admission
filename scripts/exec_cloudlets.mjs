@@ -2,7 +2,7 @@ import https from 'https';
 
 const session = '4176xcbcf4c2b674993706c0dff2971c6f9f4';
 const envName = 'admissionspsna';
-const nodeId = '276503';
+const nodeId = '277846';
 
 const bashScript = `
 pm2 delete all || true

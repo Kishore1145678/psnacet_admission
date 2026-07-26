@@ -20,7 +20,7 @@ import https from 'https';
 // ─── Cloudlets credentials ────────────────────────────────────────────────────
 const SESSION   = '4176xcbcf4c2b674993706c0dff2971c6f9f4';
 const ENV_NAME  = 'admissionspsna';
-const NODE_ID   = '276503';
+const NODE_ID   = '277846';
 // ─────────────────────────────────────────────────────────────────────────────
 
 const bashScript = `
