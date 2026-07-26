@@ -67,7 +67,7 @@ NODE_ENV=production npm run build
 
 echo "=== Starting app via PM2 ==="
 pm2 delete all || true
-HOSTNAME=0.0.0.0 PORT=80 NODE_ENV=production pm2 start npm \\
+HOSTNAME=0.0.0.0 PORT=8080 NODE_ENV=production pm2 start npm \\
   --name "psna-admissions" \\
   --cwd "/home/jelastic/ROOT" \\
   -- start

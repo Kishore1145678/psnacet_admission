@@ -2,14 +2,11 @@ import https from 'https';
 
 const session = '4176xcbcf4c2b674993706c0dff2971c6f9f4';
 const envName = 'admissionspsna';
-const nodeId = '276503';
+const nodeId = '277846';
 
 const bashScript = `
-cd /home/jelastic
-echo "--- OUT LOG ---"
-tail -n 20 .pm2/logs/psna-admissions-out.log
-echo "--- ERROR LOG ---"
-tail -n 20 .pm2/logs/psna-admissions-error.log
+echo "=== CURL LOCALHOST 8080 ==="
+curl -I http://127.0.0.1:8080/admin
 `;
 
 const script = `echo "${Buffer.from(bashScript).toString('base64')}" | base64 -d | bash`;
