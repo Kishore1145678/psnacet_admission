@@ -4,14 +4,22 @@ import { requireStudentSession, AuthError } from '@/lib/session';
 import fs from 'fs/promises';
 import path from 'path';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+async function saveToUploadDirs(fileKey: string, buffer: Buffer) {
+  const uploadDirs = [
+    path.join(process.cwd(), 'public', 'uploads'),
+    path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads'),
+    path.join(process.cwd(), '..', 'public', 'uploads'),
+    '/home/jelastic/ROOT/public/uploads',
+    '/home/jelastic/ROOT/.next/standalone/public/uploads',
+  ];
 
-// Ensure upload directory exists
-async function ensureUploadDir() {
-  try {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  } catch (e) {
-    // ignore if already exists
+  for (const dir of uploadDirs) {
+    try {
+      await fs.mkdir(dir, { recursive: true });
+      await fs.writeFile(path.join(dir, fileKey), buffer);
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -26,17 +34,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'File and category required' }, { status: 400 });
     }
 
-    await ensureUploadDir();
-
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
     // Generate unique file key
-    const fileKey = `${session.student_id}_${Date.now()}_${file.name}`;
-    const filePath = path.join(UPLOAD_DIR, fileKey);
+    const fileKey = `${session.student_id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._\-]/g, '_')}`;
 
-    // Save file
-    await fs.writeFile(filePath, buffer);
+    // Save file to all upload directories
+    await saveToUploadDirs(fileKey, buffer);
 
     // Store metadata in database
     await query(
@@ -65,7 +70,7 @@ export async function GET(req: Request) {
     
     const { rows } = await query(
       `SELECT id, document_category, file_name, file_size, file_type, file_key, uploaded_at 
-       FROM student_documents WHERE student_id = $1 ORDER BY uploaded_at DESC`,
+       FROM student_documents WHERE student_id::text = $1::text ORDER BY uploaded_at DESC`,
       [session.student_id]
     );
 
@@ -102,14 +107,6 @@ export async function DELETE(req: Request) {
     // Verify ownership
     if (rows[0].student_id !== session.student_id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
-    }
-
-    // Delete file
-    const filePath = path.join(UPLOAD_DIR, rows[0].file_key);
-    try {
-      await fs.unlink(filePath);
-    } catch (e) {
-      // File might already be deleted
     }
 
     // Delete from database
