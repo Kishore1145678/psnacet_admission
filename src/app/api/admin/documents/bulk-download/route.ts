@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { requireAdminSession, AuthError } from '@/lib/session';
+import { decryptJson, EncryptedPayload } from '@/lib/crypto';
 import fs from 'fs/promises';
 import path from 'path';
 import { tmpdir } from 'os';
@@ -10,22 +11,50 @@ import { exec } from 'child_process';
 const execAsync = promisify(exec);
 export const dynamic = 'force-dynamic';
 
-async function findSourceFile(fileKey: string): Promise<string | null> {
+async function findSourceFile(fileKey: string, fileName?: string): Promise<string | null> {
   const candidateDirs = [
     path.join(process.cwd(), 'public', 'uploads'),
     path.join(process.cwd(), '.next', 'standalone', 'public', 'uploads'),
     path.join(process.cwd(), '..', 'public', 'uploads'),
     '/home/jelastic/ROOT/public/uploads',
     '/home/jelastic/ROOT/.next/standalone/public/uploads',
+    '/home/jelastic/ROOT/uploads',
   ];
 
+  const cleanKey = path.basename(fileKey);
+  const cleanName = fileName ? path.basename(fileName) : '';
+
   for (const dir of candidateDirs) {
-    const filePath = path.join(dir, fileKey);
     try {
-      await fs.access(filePath);
-      return filePath;
+      // 1. Direct path check
+      const p1 = path.join(dir, fileKey);
+      try {
+        await fs.access(p1);
+        return p1;
+      } catch {}
+
+      // 2. Clean key check
+      const p2 = path.join(dir, cleanKey);
+      try {
+        await fs.access(p2);
+        return p2;
+      } catch {}
+
+      // 3. Directory scan for matching file
+      const files = await fs.readdir(dir);
+      for (const f of files) {
+        if (
+          f === fileKey ||
+          f === cleanKey ||
+          f.endsWith(cleanKey) ||
+          (cleanKey.length > 5 && f.includes(cleanKey)) ||
+          (cleanName.length > 5 && f.includes(cleanName))
+        ) {
+          return path.join(dir, f);
+        }
+      }
     } catch {
-      // check next candidate dir
+      // continue to next candidate dir
     }
   }
 
@@ -45,9 +74,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'studentId required' }, { status: 400 });
     }
 
-    type StudentRow = { id: string; application_number: string; full_name: string; academic_branch: string };
+    type StudentRow = { id: string; application_number: string; full_name: string; academic_branch: string; encrypted_payload?: any };
     const { rows: studentRows } = await query<StudentRow>(
-      `SELECT id, application_number, full_name, academic_branch FROM students WHERE id::text = $1::text OR application_number = $1 LIMIT 1`,
+      `SELECT s.id, s.application_number, s.full_name, s.academic_branch, f.encrypted_payload 
+       FROM students s 
+       LEFT JOIN student_application_forms f ON f.student_id = s.id AND f.status = 'submitted'
+       WHERE s.id::text = $1::text OR s.application_number = $1 
+       LIMIT 1`,
       [studentIdParam]
     );
 
@@ -57,6 +90,60 @@ export async function GET(req: Request) {
 
     const student = studentRows[0];
     const studentName = student.full_name || `Student_${studentIdParam}`;
+
+    tempDir = path.join(tmpdir(), `student_${studentIdParam}_${Date.now()}`);
+    const safeStudentName = studentName.replace(/[^a-zA-Z0-9 -]/g, '').trim().replace(/\s+/g, '_') || `Student_${studentIdParam}`;
+    const studentFolder = path.join(tempDir, safeStudentName);
+    await fs.mkdir(studentFolder, { recursive: true });
+
+    // Decrypt form payload if available
+    let formData: Record<string, any> = {};
+    if (student.encrypted_payload) {
+      try {
+        if (student.encrypted_payload?.v === 1 && student.encrypted_payload?.alg) {
+          formData = decryptJson(student.encrypted_payload as EncryptedPayload);
+        } else {
+          formData =
+            typeof student.encrypted_payload === 'string'
+              ? JSON.parse(student.encrypted_payload)
+              : student.encrypted_payload;
+        }
+      } catch {
+        formData = {};
+      }
+    }
+
+    let extractedBase64Count = 0;
+
+    // 1. Extract base64 files
+    if (formData && typeof formData === 'object') {
+      for (const [key, value] of Object.entries(formData)) {
+        if (typeof value === 'string' && value.startsWith('data:')) {
+          const match = value.match(/^data:([a-zA-Z0-9\/\-]+);base64,(.+)$/);
+          if (match) {
+            const mimeType = match[1];
+            const base64Data = match[2];
+            let ext = 'bin';
+            if (mimeType.includes('pdf')) ext = 'pdf';
+            else if (mimeType.includes('png')) ext = 'png';
+            else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
+            else if (mimeType.includes('word') || mimeType.includes('document')) ext = 'docx';
+
+            let filename = 'Document';
+            if (key === 'student_photo_base64') filename = 'Student_Photo';
+            else filename = key.replace(/[^a-zA-Z0-9_\-]/g, '_');
+
+            const imageBuffer = Buffer.from(base64Data, 'base64');
+            try {
+              await fs.writeFile(path.join(studentFolder, `${filename}.${ext}`), imageBuffer);
+              extractedBase64Count++;
+            } catch (err) {
+              console.error(`Failed to save base64 doc ${key}:`, err);
+            }
+          }
+        }
+      }
+    }
 
     type DocRow = {
       id: number;
@@ -69,15 +156,31 @@ export async function GET(req: Request) {
     const { rows } = await query<DocRow>(
       `SELECT id, file_name, file_key, document_category, uploaded_at 
        FROM student_documents 
-       WHERE student_id::text = $1::text OR student_id::text = $2::text 
+       WHERE student_id::text = $1::text 
+          OR student_id::text = $2::text 
+          OR file_key LIKE $1::text || '%' 
+          OR file_key LIKE $2::text || '%'
        ORDER BY document_category, file_name`,
       [student.id, student.application_number]
     );
 
-    tempDir = path.join(tmpdir(), `student_${studentIdParam}_${Date.now()}`);
-    const safeStudentName = studentName.replace(/[^a-zA-Z0-9 -]/g, '').trim().replace(/\s+/g, '_') || `Student_${studentIdParam}`;
-    const studentFolder = path.join(tempDir, safeStudentName);
-    await fs.mkdir(studentFolder, { recursive: true });
+    let copiedDocCount = 0;
+
+    // Copy files
+    for (const doc of rows) {
+      const sourcePath = await findSourceFile(doc.file_key, doc.file_name);
+      if (sourcePath) {
+        try {
+          const safeCategory = doc.document_category.replace(/[/\\?%*:|"<>]/g, '-');
+          const safeFileName = doc.file_name.replace(/[^a-zA-Z0-9._\-]/g, '_');
+          const uniqueFileName = `${safeCategory}_${safeFileName}`;
+          await fs.copyFile(sourcePath, path.join(studentFolder, uniqueFileName));
+          copiedDocCount++;
+        } catch (e) {
+          console.error(`Failed to copy file: ${doc.file_key}`);
+        }
+      }
+    }
 
     // Generate student summary txt
     const summaryText = [
@@ -88,7 +191,8 @@ export async function GET(req: Request) {
       `Student Name       : ${student.full_name}`,
       `Application Number : ${student.application_number}`,
       `Academic Branch    : ${student.academic_branch || 'Not Specified'}`,
-      `Uploaded Documents : ${rows.length} file(s)`,
+      `Base64 Files Found : ${extractedBase64Count}`,
+      `Disk Files Copied  : ${copiedDocCount} of ${rows.length} database record(s)`,
       '==================================================',
       '',
       'DOCUMENT LIST:',
@@ -101,21 +205,6 @@ export async function GET(req: Request) {
     ].join('\n');
 
     await fs.writeFile(path.join(studentFolder, 'student_summary.txt'), summaryText);
-
-    // Copy files
-    for (const doc of rows) {
-      const sourcePath = await findSourceFile(doc.file_key);
-      if (sourcePath) {
-        try {
-          const safeCategory = doc.document_category.replace(/[/\\?%*:|"<>]/g, '-');
-          const safeFileName = doc.file_name.replace(/[^a-zA-Z0-9._\-]/g, '_');
-          const uniqueFileName = `${safeCategory}_${safeFileName}`;
-          await fs.copyFile(sourcePath, path.join(studentFolder, uniqueFileName));
-        } catch (e) {
-          console.error(`Failed to copy file: ${doc.file_key}`);
-        }
-      }
-    }
 
     tempZipPath = path.join(tmpdir(), `student_${studentIdParam}_documents_${Date.now()}.zip`);
     const zipCommand = process.platform === 'win32'
