@@ -1098,176 +1098,77 @@ export default function AdminDashboard() {
     '_studentId': app.id, // Hidden field for tracking
   });
 
-  // Smart export with duplicate prevention and update support
+  // Smart export with duplicate prevention and update support (Fetches 100% full decrypted DB details)
   const smartExportStudents = async (appsToExport: Application[], isArchive = false, forceBrowserDownload = false) => {
     if (appsToExport.length === 0) {
       alert('No student details available to download.');
       return false;
     }
 
-    // Get stored export data
-    const storedData = getStoredExportData();
-    
-    // Group apps by department
-    const deptMap = new Map<string, Application[]>();
-    appsToExport.forEach(app => {
-      const dept = app.department || 'Unknown';
-      if (!deptMap.has(dept)) deptMap.set(dept, []);
-      deptMap.get(dept)!.push(app);
-    });
-
-    // Create workbook with department sheets
-    const wb = XLSX.utils.book_new();
-
-    deptMap.forEach((deptApps, deptName) => {
-      // Get stored data for this department
-      const storedDeptData = storedData[deptName] || [];
-      
-      // Create a map of stored students by ID for easy lookup
-      const storedMap = new Map<string, any>();
-      storedDeptData.forEach((row: any) => {
-        storedMap.set(row._studentId || row['Application Number'], row);
-      });
-
-      // Merge: update existing students and add new ones
-      const mergedData: any[] = [];
-      const addedIds = new Set<string>();
-
-      // First add/update with new exports
-      deptApps.forEach(app => {
-        const exportRow = appToExportRow(app);
-        mergedData.push(exportRow);
-        addedIds.add(app.id);
-      });
-
-      // Then add stored students that weren't in this export
-      storedDeptData.forEach((storedRow: any) => {
-        const studentId = storedRow._studentId || storedRow['Application Number'];
-        if (!addedIds.has(studentId)) {
-          mergedData.push(storedRow);
-        }
-      });
-
-      // Create sheet with merged data
-      const ws = XLSX.utils.json_to_sheet(mergedData);
-      
-      // Hide the _studentId column
-      const colsWidth = Object.keys(mergedData[0] || {}).map(key => ({
-        wch: key === '_studentId' ? 0 : 18
-      }));
-      ws['!cols'] = colsWidth;
-      
-      // Add sheet to workbook
-      let safeDeptName = deptName.replace(/[\\/?*[\]:]/g, ' ').substring(0, 31);
-      XLSX.utils.book_append_sheet(wb, ws, safeDeptName);
-
-      // Update stored data for this department
-      storedData[deptName] = mergedData;
-    });
-
-    // Save updated data to localStorage
-    saveStoredExportData(storedData);
-
-    // Check if custom path is configured
-    console.log('=== STARTING EXCEL EXPORT ===');
+    console.log('=== STARTING EXCEL EXPORT (FULL DECRYPTED DETAILS) ===');
     console.log('Students to export:', appsToExport.length);
-    
+    const studentIds = appsToExport.map(a => a.id).filter(Boolean);
+
     try {
-      console.log('Fetching settings from /api/admin/settings...');
-      const settingsRes = await fetch('/api/admin/settings', {
-        credentials: 'include',
-      });
-      
-      console.log('Settings response status:', settingsRes.status);
-      
-      if (settingsRes.ok && !forceBrowserDownload) {
+      // Check if custom server path is configured
+      const settingsRes = await fetch('/api/admin/settings', { credentials: 'include' });
+      let customPath: string | null = null;
+      if (settingsRes.ok) {
         const settings = await settingsRes.json();
-        console.log('Settings retrieved:', settings);
-        console.log('Excel export path setting:', settings.excel_export_path);
-        
         if (settings.excel_export_path && settings.excel_export_path.trim()) {
-          console.log('Custom path found, attempting server-side export...');
-          
-          // Use custom path via API
-          const students = appsToExport.map(app => ({
-            id: app.id,
-            name: app.name,
-            department: app.department || 'Unknown',
-            mobile: app.mobile,
-            dob: app.dob,
-            fatherName: app.fatherName,
-            motherName: app.motherName,
-            date: app.date,
-            status: app.status,
-          }));
-
-          console.log('Prepared students data:', students.length, 'students');
-          console.log('Calling /api/admin/export-excel...');
-          
-          const exportRes = await fetch('/api/admin/export-excel', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ students, useCustomPath: true }),
-          });
-
-          console.log('Export API response status:', exportRes.status);
-          
-          const result = await exportRes.json();
-          console.log('Export API response:', result);
-
-          if (exportRes.ok) {
-            console.log('✅ Export successful!');
-            console.log('File path:', result.filepath);
-            console.log('File size:', result.fileSize, 'bytes');
-            console.log('Sheets created:', result.sheetsCreated);
-            console.log('=== EXPORT COMPLETED SUCCESSFULLY ===');
-            
-            alert(`✅ Successfully exported!\n\nPath: ${result.filepath}\nFile size: ${(result.fileSize / 1024).toFixed(2)} KB\nSheets created: ${result.sheetsCreated}`);
-            return true;
-          } else {
-            console.error('❌ Export API returned error');
-            const errorMsg = result.error || 'Unknown error occurred';
-            const errorType = result.errorType || 'Unknown';
-            const errorCode = result.errorCode || 'N/A';
-            const details = result.details || {};
-            
-            console.error('Export error details:', {
-              error: errorMsg,
-              errorType,
-              errorCode,
-              details,
-              path: result.path
-            });
-            
-            console.log('Falling back to browser download...');
-            
-            alert(`❌ Export to custom path failed:\n\nError: ${errorMsg}\nError Code: ${errorCode}\nPath: ${result.path || 'unknown'}\n\nTroubleshooting:\n1. Verify path exists: ${result.path}\n2. Check write permissions\n3. Ensure disk has space\n4. Check server logs for details\n\nFalling back to browser download...`);
-            
-            // Fallback: Browser download
-            const activeSession = `${new Date().getFullYear()} – ${new Date().getFullYear() + 4}`;
-            XLSX.writeFile(wb, `Student_Records_${activeSession}${isArchive ? '_Restart_Backup' : ''}.xlsx`);
-            return false;
-          }
-        } else {
-          console.log('No custom path configured, using browser download');
+          customPath = settings.excel_export_path.trim();
         }
-      } else {
-        console.error('Failed to fetch settings, status:', settingsRes.status);
       }
-    } catch (error) {
-      console.error('Error in export process:', error);
-    }
 
-    // Fallback: Browser download (no custom path configured)
-    console.log('Performing browser download fallback...');
-    const activeSession = `${new Date().getFullYear()} – ${new Date().getFullYear() + 4}`;
-    const filename = `Student_Records_${activeSession}${isArchive ? '_Restart_Backup' : ''}.xlsx`;
-    console.log('Downloading as:', filename);
-    XLSX.writeFile(wb, filename);
-    
-    alert(`Successfully exported ${appsToExport.length} student(s) to Excel!`);
-    return true;
+      if (customPath && !forceBrowserDownload) {
+        console.log('Custom path found, attempting server-side export with full DB decryption...');
+        const exportRes = await fetch('/api/admin/export-excel', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentIds, useCustomPath: true }),
+        });
+
+        const result = await exportRes.json().catch(() => ({}));
+        if (exportRes.ok && result.success) {
+          alert(`✅ Successfully exported full student details to custom path!\n\nPath: ${result.path}\nFilename: ${result.filename}\nSheets created: ${result.sheetsCreated}`);
+          return true;
+        } else {
+          console.error('Custom path export failed, falling back to direct browser download...', result);
+        }
+      }
+
+      // Direct browser download of full decrypted PostgreSQL Excel file
+      console.log('Performing browser download with 100% full decrypted details...');
+      const exportRes = await fetch('/api/admin/export-excel', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentIds, useCustomPath: false }),
+      });
+
+      if (!exportRes.ok) {
+        throw new Error('Failed to generate full Excel file from server database.');
+      }
+
+      const blob = await exportRes.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      a.download = `PSNACET_Student_Applications_${timestamp}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      alert(`✅ Successfully exported ${appsToExport.length} student(s) with 100% complete details to Excel!`);
+      return true;
+    } catch (error: any) {
+      console.error('Error in smartExportStudents:', error);
+      alert(`Export failed: ${error.message || 'Unknown error'}`);
+      return false;
+    }
   };
 
   const exportToExcelCore = async (isArchive = false, forceBrowserDownload = false) => {
