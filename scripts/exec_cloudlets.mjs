@@ -14,9 +14,9 @@ echo "Cleaning up old build files for a completely fresh start..."
 cd /home/jelastic/ROOT
 rm -rf node_modules .next
 
-echo "DATABASE_URL=\\"postgresql://webadmin:MAPlqk90284@node276505-admissionspsna.in1.cloudlets.co.in:5432/postgres\\"" > .env.production
-echo "ENCRYPTION_KEY_BASE64=\\"kQ8N3XzR5mP9vL1wK6jF4tY7sB2hA0cE+uD8iO3pQ5s=\\"" >> .env.production
-echo "NEXT_PUBLIC_APP_URL=\\"https://admissions.psnacet.edu.in\\"" >> .env.production
+echo "DATABASE_URL=\"postgresql://webadmin:MAPlqk90284@node276505-admissionspsna.in1.cloudlets.co.in:5432/postgres\"" > .env.production
+echo "ENCRYPTION_KEY_BASE64=\"kQ8N3XzR5mP9vL1wK6jF4tY7sB2hA0cE+uD8iO3pQ5s=\"" >> .env.production
+echo "NEXT_PUBLIC_APP_URL=\"https://admissions.psnacet.edu.in\"" >> .env.production
 
 npm ci || npm install
 NODE_ENV=production npm run db:setup
