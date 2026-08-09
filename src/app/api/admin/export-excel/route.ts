@@ -352,6 +352,14 @@ export async function POST(req: Request) {
       try {
         if (!fs.existsSync(exportPath)) {
           fs.mkdirSync(exportPath, { recursive: true });
+        } else {
+          // Clean up old stale excel exports in exportPath so obsolete data never lingers
+          try {
+            const oldFiles = fs.readdirSync(exportPath).filter(f => f.toLowerCase().endsWith('.xlsx'));
+            for (const oldFile of oldFiles) {
+              try { fs.unlinkSync(path.join(exportPath, oldFile)); } catch {}
+            }
+          } catch {}
         }
         const fullPath = path.join(exportPath, filename);
         const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
